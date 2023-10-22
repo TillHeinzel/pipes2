@@ -23,10 +23,22 @@ namespace pipes
     return std::tuple{n1, n2};
   }
 
+  template<class Op1, class Op2, class Op3>
+  auto operator>>=(RawNode<Op1> n1, std::tuple<Op2, Op3> n2)
+  {
+    return std::tuple{n1, std::get<0>(n2), std::get<1>(n2)};
+  }
+
   template<class Op1, class Op2>
   auto operator>>=(std::tuple<Op1, Op2> chain, OpenSink auto s)
   {
     return std::get<0>(chain) >>= std::get<1>(chain) >>= s;
+  }
+
+  template<class Op1, class Op2, class Op3>
+  auto operator>>=(std::tuple<Op1, Op2, Op3> chain, OpenSink auto s)
+  {
+    return std::get<0>(chain) >>= std::get<1>(chain) >>= std::get<2>(chain) >>= s;
   }
 } // namespace pipes
 
@@ -40,6 +52,12 @@ namespace pipes
 
   template<class Op1, class Op2>
   auto operator>>=(std::tuple<Op1, Op2> chain, std::vector<int>& v)
+  {
+    return chain >>= PushBackSink{v};
+  }
+
+  template<class Op1, class Op2, class Op3>
+  auto operator>>=(std::tuple<Op1, Op2, Op3> chain, std::vector<int>& v)
   {
     return chain >>= PushBackSink{v};
   }
