@@ -5,10 +5,8 @@
 namespace pipes
 {
   template<class F>
-  struct FilterOp
+  struct Filter
   {
-    constexpr static bool isOp = true;
-
     F f;
 
     void push(Sink<int> auto& next, int i)
@@ -18,12 +16,8 @@ namespace pipes
   };
 
   template<typename F>
-  RawNodes<FilterOp<F>> filter(F f)
-    requires std::invocable<F, int> &&
-             std::same_as<std::invoke_result_t<F, int>, bool>
+  RawNodes<Filter<F>> filter(F f)
   {
-    return {FilterOp{f}};
+    return RawNodes{Filter{f}};
   }
-
-
 } // namespace pipes

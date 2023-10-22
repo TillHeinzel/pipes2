@@ -186,8 +186,6 @@ TEST_CASE("test")
   }
 
   // todo: sources without sinks
-  // sinks without sources
-  // partially constructed chains
   // different operators, including <<= >>= << >>
-  // additional pipes: filter, reduce, flatten,
+  // additional pipes: reduce, flatten,
 }
