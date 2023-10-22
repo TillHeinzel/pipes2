@@ -77,8 +77,45 @@ TEST_CASE("test")
     }
   }
 
+  SUBCASE("filter")
+  {
+    SUBCASE("empty")
+    {
+      auto const source = std::vector<int>{};
+
+      auto target = std::vector<int>{};
+
+      source >>= pipes::filter([](int i) { return false; }) >>= target;
+
+      REQUIRE(target.empty());
+    }
+
+    SUBCASE("nonempty all good")
+    {
+      auto const source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto target = std::vector<int>{};
+
+      source >>= pipes::filter([](int i) { return true; }) >>= target;
+
+      REQUIRE(target == source);
+    }
+
+    SUBCASE("only odd")
+    {
+      auto const source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto target = std::vector<int>{};
+
+      source >>= pipes::filter([](int i) { return i % 2 == 1; }) >>= target;
+
+      REQUIRE(target == std::vector{1, 3, 5});
+    }
+  }
+
   // todo: sources without sinks
   // sinks without sources
+  // partially constructed chains
   // different operators, including <<= >>= << >>
   // additional pipes: filter, reduce, flatten,
 }

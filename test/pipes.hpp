@@ -1,39 +1,38 @@
+#pragma once
 
 #include <concepts>
 #include <vector>
 
+#include "PushBack.hpp"
+#include "Filter.hpp"
+#include "Transform.hpp"
+
 namespace pipes
 {
   template<class F>
-  struct TransformNode
-  {
-    F f;
-  };
-
-  template<class F>
-  struct Sink
-  {
-    TransformNode<F> node;
-    std::vector<int>& v;
-  };
-
-  template<class F>
-  Sink<F> operator>>=(TransformNode<F> node, std::vector<int>& v)
+  TransformSink<F> operator>>=(TransformNode<F> node, std::vector<int>& v)
   {
     return {node, v};
   }
 
   template<class F>
-  void operator>>=(std::vector<int> const& source, Sink<F> sink)
+  void operator>>=(std::vector<int> const& source, TransformSink<F> sink)
   {
-    for(const int i : source) { sink.v.push_back(sink.node.f(i)); }
+    for(const int i : source) { sink.push(i); }
   }
 
-  template<typename F>
-  TransformNode<F> transform(F f)
-    requires std::invocable<F, int> &&
-             std::same_as<std::invoke_result_t<F, int>, int>
+
+
+  template<class F>
+  FilterSink<F> operator>>=(FilterNode<F> node, std::vector<int>& v)
   {
-    return {f};
-  };
+    return {node, v};
+  }
+
+  template<class F>
+  void operator>>=(const std::vector<int>& source, FilterSink<F> sink)
+  {
+    for(const int i : source) { sink.push(i); }
+  }
+
 } // namespace pipes
