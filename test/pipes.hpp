@@ -36,7 +36,26 @@ namespace pipes
   {
     for(const int i : source) { sink.push(i); }
   }
+
+  template<class... Ops>
+  auto operator>>=(std::vector<int> const& source, RawNodes<Ops...> n) 
+  {
+    return Source{source, n};
+  }
+
+  template<class... Ops>
+  void operator>>=(Source<Ops...> source, Sink<int> auto sink)
+  {
+    return source.root >>= (source.ops >>= sink);
+  }
+
+  template<class... Ops>
+  void operator>>=(Source<Ops...> source, std::vector<int>& v)
+  {
+    return source >>= PushBackSink{v};
+  }
 } // namespace pipes
+
 
 #include "Filter.hpp"
 #include "Transform.hpp"

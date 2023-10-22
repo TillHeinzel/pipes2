@@ -183,6 +183,22 @@ TEST_CASE("test")
 
       REQUIRE(target == std::vector{3, 7, 11});
     }
+
+    SUBCASE("prepare source without sink")
+    {
+      auto chain = pipes::filter([](int i) { return i % 2 == 1; }) >>=
+        pipes::transform([](int i) { return 2*i; }) >>=
+        pipes::transform([](int i) { return i + 1; });
+
+      auto target = std::vector<int>{};
+
+      auto const orig = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto const source = orig >>= chain;
+      source >>= target;
+
+      REQUIRE(target == std::vector{3, 7, 11});
+    }
   }
 
   // todo: sources without sinks

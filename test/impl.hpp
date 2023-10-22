@@ -34,6 +34,21 @@ namespace pipes
 
 namespace pipes
 {
+  template<class... Ops>
+  struct Source
+  {
+    std::vector<int> const& root;
+    RawNodes<Ops...> ops;
+  };
+
+  // todo: generalize Sources to include others than just vectors
+  //  todo: put in checks, so that ops are required to be able to be called with
+  //  output of root. Can use a dummy-Sink to see if it works out somehow?
+
+} // namespace pipes
+
+namespace pipes
+{
   template<class Op>
   auto addBefore(OpenSink auto s, Op op)
   {
