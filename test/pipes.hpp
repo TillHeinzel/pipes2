@@ -13,53 +13,42 @@
 namespace pipes
 {
   template<class Op>
-  auto addBefore(OpenSink auto s, RawNode<Op> n)
+  auto addBefore(OpenSink auto s, Op op)
   {
-    return Node{n.op, s};
+    return Node{op, s};
   }
 
   template<class Op, class... Ops>
-  auto addBefore(OpenSink auto s, RawNode<Op> n, RawNode<Ops>... nodes)
+  auto addBefore(OpenSink auto s, Op n, Ops... nodes)
   {
     return addBefore(addBefore(s, n), nodes...);
   }
 
-  template<class Op>
-  auto operator>>=(RawNode<Op> n, OpenSink auto s) -> decltype(Node{n.op, s})
-  {
-    return addBefore(s, n);
-  }
-
-  template<class Op1, class Op2>
-  auto operator>>=(RawNode<Op1> n1, RawNode<Op2> n2)
-  {
-    return std::tuple{n1, n2};
-  }
-
-  template<class Op1, class Op2, class Op3>
-  auto operator>>=(RawNode<Op1> n1, std::tuple<Op2, Op3> n2)
-  {
-    return std::tuple_cat(std::tuple{n1}, n2);
-  }
-
-  template<class Op1>
-  auto operator>>=(std::tuple<Op1> chain, OpenSink auto s)
+  template<class... Ops>
+  auto addBefore(OpenSink auto s, std::tuple<Ops...> ops)
   {
     auto f = [&](auto... n) { return addBefore(s, n...); };
-    return std::apply(f, chain);
+    return std::apply(f, ops);
   }
+
+  //template<class... Ops>
+  //auto addBefore(OpenSink auto s, RawNodes<Ops...> ops)
+  //{
+  //  auto f = [&](auto... n) { return addBefore(s, n...); };
+  //  return std::apply(f, ops);
+  //}
 
   template<class Op1, class Op2>
-  auto operator>>=(std::tuple<Op1, Op2> chain, OpenSink auto s)
+  auto addBefore(Op2 op2, Op1 op1)
   {
-    return std::get<0>(chain) >>= std::get<1>(chain) >>= s;
+    return std::tuple{op2, op1};
   }
 
-  template<class Op1, class Op2, class Op3>
-  auto operator>>=(std::tuple<Op1, Op2, Op3> chain, OpenSink auto s)
+  template<class Op1, class... Ops>
+  auto addBefore(std::tuple<Ops...> ops, Op1 op1)
   {
-    return std::get<0>(chain) >>= std::get<1>(chain) >>= std::get<2>(chain) >>=
-           s;
+    return std::tuple_cat(ops, std::tuple{
+    op1});
   }
 
 } // namespace pipes
@@ -67,7 +56,34 @@ namespace pipes
 namespace pipes
 {
   template<class Op>
-  Node<Op, PushBackSink> operator>>=(RawNode<Op> n, std::vector<int>& v)
+  auto operator>>=(RawNodes<Op> n, OpenSink auto s)
+  {
+    return addBefore(s, std::get<0>(n));
+  }
+
+  template<class Op1, class Op2>
+  auto operator>>=(RawNodes<Op1> n1, RawNodes<Op2> n2)
+  {
+    return addBefore(std::get<0>(n2), std::get<0>(n1));
+  }
+
+  template<class Op1, class Op2, class Op3>
+  auto operator>>=(RawNodes<Op1> n1, std::tuple<Op2, Op3> n2)
+  {
+    return addBefore(n2, std::get<0>(n1));
+  }
+
+  template<class... Ops>
+  auto operator>>=(std::tuple<Ops...> chain, OpenSink auto s)
+  {
+    return addBefore(s, chain);
+  }
+} // namespace pipes
+
+namespace pipes
+{
+  template<class Op>
+  Node<Op, PushBackSink> operator>>=(RawNodes<Op> n, std::vector<int>& v)
   {
     return n >>= PushBackSink{v};
   }

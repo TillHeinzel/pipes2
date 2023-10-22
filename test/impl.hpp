@@ -13,10 +13,9 @@ namespace pipes
     void push(int i) { op.push(next, i); }
   };
 
-  template<class Op>
-  struct RawNode
+  template<class... Ops>
+  struct RawNodes : public std::tuple<Ops...>
   {
-    Op op;
   };
 } // namespace pipes
 
@@ -26,8 +25,5 @@ namespace pipes
   concept Sink = requires(T t, I i) { t.push(i); };
 
   template<typename T>
-  concept OpenSink = requires(T)
-  {
-    T::isOpenSink;
-  };
-}
+  concept OpenSink = requires(T) { T::isOpenSink; };
+} // namespace pipes

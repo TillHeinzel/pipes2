@@ -18,11 +18,11 @@ namespace pipes
   };
 
   template<typename F>
-  RawNode<FilterOp<F>> filter(F f)
+  RawNodes<FilterOp<F>> filter(F f)
     requires std::invocable<F, int> &&
              std::same_as<std::invoke_result_t<F, int>, bool>
   {
-    return {f};
+    return {FilterOp{f}};
   }
 
 

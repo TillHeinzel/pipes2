@@ -18,10 +18,10 @@ namespace pipes
   };
 
   template<typename F>
-  RawNode<TransformOp<F>> transform(F f)
+  RawNodes<TransformOp<F>> transform(F f)
     requires std::invocable<F, int> &&
              std::same_as<std::invoke_result_t<F, int>, int>
   {
-    return {f};
+    return {TransformOp{f}};
   };
 }
