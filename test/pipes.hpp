@@ -3,29 +3,48 @@
 #include <concepts>
 #include <vector>
 
-#include "PushBack.hpp"
+#include "impl.hpp"
+
 #include "Filter.hpp"
+#include "PushBack.hpp"
 #include "Transform.hpp"
 
 namespace pipes
 {
-  template<class F>
-  TransformSink<F> operator>>=(TransformNode<F> node, std::vector<int>& v)
+  template<class Op>
+  auto operator>>=(RawNode<Op> n, OpenSink auto s) -> decltype(Node{n.op, s})
   {
-    return {node, v};
+    return Node{n.op, s};
   }
 
-
-  template<class F>
-  FilterSink<F> operator>>=(FilterNode<F> node, std::vector<int>& v)
+  template<class Op1, class Op2>
+  auto operator>>=(RawNode<Op1> n1, RawNode<Op2> n2)
   {
-    return {node, v};
+    return std::tuple{n1, n2};
   }
 
-  template<typename T>
-  concept Sink = requires(T t, int i) { t.push(i); };
+  template<class Op1, class Op2>
+  auto operator>>=(std::tuple<Op1, Op2> chain, OpenSink auto s)
+  {
+    return std::get<0>(chain) >>= std::get<1>(chain) >>= s;
+  }
+} // namespace pipes
 
-  void operator>>=(std::vector<int> const& source, Sink auto sink)
+namespace pipes
+{
+  template<class Op>
+  Node<Op, PushBackSink> operator>>=(RawNode<Op> n, std::vector<int>& v)
+  {
+    return n >>= PushBackSink{v};
+  }
+
+  template<class Op1, class Op2>
+  auto operator>>=(std::tuple<Op1, Op2> chain, std::vector<int>& v)
+  {
+    return chain >>= PushBackSink{v};
+  }
+
+  void operator>>=(std::vector<int> const& source, Sink<int> auto sink)
   {
     for(const int i : source) { sink.push(i); }
   }

@@ -1,32 +1,29 @@
 #pragma once
 
-#include "PushBack.hpp"
+#include "impl.hpp"
 
 namespace pipes
 {
   template<class F>
-  struct FilterNode
+  struct FilterOp
   {
+    constexpr static bool isOp = true;
+
     F f;
-  };
 
-  template<class F>
-  struct FilterSink
-  {
-    FilterNode<F> node;
-    PushBackSink sink;
-
-    void push(int i)
+    void push(Sink<int> auto& next, int i)
     {
-      if(node.f(i)) sink.push(i);
+      if(f(i)) next.push(i);
     }
   };
 
   template<typename F>
-  FilterNode<F> filter(F f)
+  RawNode<FilterOp<F>> filter(F f)
     requires std::invocable<F, int> &&
              std::same_as<std::invoke_result_t<F, int>, bool>
   {
     return {f};
   }
+
+
 } // namespace pipes

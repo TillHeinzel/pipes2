@@ -27,6 +27,8 @@ namespace std
 
 TEST_CASE("test")
 {
+  // using namespace pipes::operators;
+
   SUBCASE("transform")
   {
     SUBCASE("Identity")
@@ -75,6 +77,18 @@ TEST_CASE("test")
 
       REQUIRE(target == std::vector{2, 4, 6, 8, 10});
     }
+
+    SUBCASE("chained transforms")
+    {
+      auto const source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto target = std::vector<int>{};
+
+      source >>= pipes::transform([](int i) { return 2 * i; }) >>=
+        pipes::transform([](int i) { return i + 1; }) >>= target;
+
+      REQUIRE(target == std::vector{3, 5, 7, 9, 11});
+    }
   }
 
   SUBCASE("filter")
@@ -110,6 +124,49 @@ TEST_CASE("test")
       source >>= pipes::filter([](int i) { return i % 2 == 1; }) >>= target;
 
       REQUIRE(target == std::vector{1, 3, 5});
+    }
+  }
+
+  SUBCASE("chained operations")
+  {
+    SUBCASE("filter transform")
+    {
+      auto const source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto target = std::vector<int>{};
+
+      source >>= pipes::filter([](int i) { return i % 2 == 1; }) >>=
+        pipes::transform([](int i) { return 2 * i; }) >>= target;
+
+      REQUIRE(target == std::vector{2, 6, 10});
+    }
+
+    SUBCASE("prepare open sink")
+    {
+      auto const source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto target = std::vector<int>{};
+
+      auto sink = pipes::filter([](int i) { return i % 2 == 1; }) >>=
+        pipes::transform([](int i) { return 2 * i; }) >>= target;
+
+      source >>= sink;
+
+      REQUIRE(target == std::vector{2, 6, 10});
+    }
+
+    SUBCASE("prepare operations-chain with 2 ops")
+    {
+      auto const source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto chain = pipes::filter([](int i) { return i % 2 == 1; }) >>=
+        pipes::transform([](int i) { return 2 * i; });
+
+      auto target = std::vector<int>{};
+
+      source >>= chain >>= target;
+
+      REQUIRE(target == std::vector{2, 6, 10});
     }
   }
 
