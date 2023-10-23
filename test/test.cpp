@@ -330,26 +330,28 @@ TEST_CASE("test")
 
     SUBCASE("two source")
     {
-       auto const source1 = std::vector<int>{1, 2, 3};
-       auto const source2 = std::vector<std::string>{"a", "b", "c"};
+      auto const source1 = std::vector<int>{1, 2, 3};
+      auto const source2 = std::vector<std::string>{"a", "b", "c"};
 
-       auto target = std::vector<std::tuple<int, std::string>>{};
+      auto target = std::vector<std::tuple<int, std::string>>{};
 
-       pipes::zip(source1, source2) >>= target;
+      pipes::zip(source1, source2) >>= target;
 
-       CHECK(target == std::vector<std::tuple<int, std::string>>{
-                         {1, "a"},
-                         {2, "b"},
-                         {3, "c"}
-       });
+      CHECK(target == std::vector<std::tuple<int, std::string>>{
+                        {1, "a"},
+                        {2, "b"},
+                        {3, "c"}
+      });
     }
 
+    SUBCASE("two source, different lengths") {}
     SUBCASE("three source") {}
     SUBCASE("two subcases, unpack into transform") {}
     SUBCASE("one source, unpack into transform") {}
     SUBCASE("zero sources") {}
+    SUBCASE("source with reference types") {}
 
-    //todo: work with different input sources, such as map
+    // todo: work with different input sources, such as map
   }
   SUBCASE("override") {}
   SUBCASE("set_aggregator") {}

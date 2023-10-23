@@ -20,7 +20,7 @@ namespace pipes::detail
   };
 
   template<class... Ts, class F, std::size_t... Is>
-  auto tuple_transform_impl(std::tuple<Ts...> const& t,
+  auto tuple_transform_impl(std::tuple<Ts...>& t,
                             F const& f,
                             std::index_sequence<Is...>)
   {
@@ -28,36 +28,47 @@ namespace pipes::detail
   }
 
   template<class... Ts, class F>
-  auto tuple_transform(std::tuple<Ts...> const& t, F const& f)
+  auto transform(std::tuple<Ts...>& t, F const& f)
   {
     return tuple_transform_impl(t, f, std::index_sequence_for<Ts...>{});
   }
 
-  template<class... Ts>
-  auto begins(std::tuple<std::vector<Ts> const&...> vs)
+  template<class... Its, class... Ends, std::size_t... Is>
+  bool any_end_impl(std::tuple<Its...> const& its,
+                    std ::tuple<Ends...> const& ends,
+                    std::index_sequence<Is...>)
   {
-    return tuple_transform(vs, [](auto const& v) { return v.begin(); });
+    return ((std::get<Is>(its) == std::get<Is>(ends)) || ...);
   }
 
-  template<class T1, class T2>
+  template<class... Its, class... Ends>
+  bool any_end(std::tuple<Its...> its, std::tuple<Ends...> ends)
+  {
+    return any_end_impl(its, ends, std::index_sequence_for<Its...>{});
+  }
+
+  template<class... Ts>
   struct Zip2
   {
-    using OutputType = std::tuple<T1, T2>;
+    using OutputType = std::tuple<Ts...>;
 
-    std::vector<T1> const& v1;
-    std::vector<T2> const& v2;
+    std::tuple<std::vector<Ts> const&...> vs;
 
-    void push(SinkFor<std::tuple<T1, T2>> auto sink)
+    void push(SinkFor<OutputType> auto sink)
     {
-      auto its = begins(std::tie(v1, v2));
+      constexpr auto begin = [](auto const& v) { return v.begin(); };
+      constexpr auto end = [](auto const& v) { return v.end(); };
+      constexpr auto dereference = [](auto it) { return *it; };
+      constexpr auto progress = [](auto& it) { return ++it; };
 
-      auto [it1, it2] = its;
+      auto its = transform(vs, begin);
+      auto ends = transform(vs, end);
 
-      while(it1 != v1.end() && it2 != v2.end())
+      while(!any_end(its, ends))
       {
-        sink.push(OutputType{*it1, *it2});
-        ++it1;
-        ++it2;
+        sink.push(OutputType{transform(its, dereference)});
+
+        transform(its, progress);
       }
     }
   };
@@ -68,10 +79,8 @@ namespace pipes::detail
     auto zip(const std::vector<T>& v) PIPES_FWD(Source{Zip{v}});
 
     template<class T1, class T2>
-    auto zip(const std::vector<T1>& v1, const std::vector<T2>& v2)
-      PIPES_FWD(Source{
-        Zip2{v1, v2}
-    });
+    auto zip(std::vector<T1> const& v1, std::vector<T2> const& v2)
+      PIPES_FWD(Source{Zip2{std::tie(v1, v2)}});
 
   } // namespace api
 } // namespace pipes::detail
