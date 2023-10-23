@@ -249,7 +249,9 @@ TEST_CASE("test")
     }
   }
 
-  SUBCASE("discard") {}
+  SUBCASE("discard") {
+    
+  }
   SUBCASE("drop n") {}
   SUBCASE("drop until") {}
   SUBCASE("fork") {}

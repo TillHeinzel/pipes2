@@ -19,9 +19,6 @@ namespace pipes::detail
   namespace api
   {
     template<typename F>
-    RawNodes<Transform<F>> transform(F f)
-    {
-      return RawNodes{Transform{f}};
-    };
+    auto transform(F f) PIPES_FWD(RawNodes{Transform{f}})
   } // namespace api
 } // namespace pipes::detail
