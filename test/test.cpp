@@ -344,9 +344,40 @@ TEST_CASE("test")
       });
     }
 
-    SUBCASE("two sources, different lengths") {}
-    SUBCASE("three sources") {}
-    SUBCASE("two sources, unpack into transform") {}
+    SUBCASE("two sources, different lengths") {
+      auto const source1 = std::vector<int>{1, 2, 3};
+      auto const source2 = std::vector<std::string>{"a", "b"};
+
+      auto target = std::vector<std::tuple<int, std::string>>{};
+
+      pipes::zip(source1, source2) >>= target;
+
+      CHECK(target == std::vector<std::tuple<int, std::string>>{
+                        {1, "a"},
+                        {2, "b"}
+      });
+    }
+
+    SUBCASE("three sources") {
+      auto const source1 = std::vector<int>{1, 2, 3};
+      auto const source2 = std::vector<std::string>{"a", "b", "c"};
+      auto const source3 = std::vector<float>{1.1, 2.2, 3.3};
+
+      auto target = std::vector<std::tuple<int, std::string ,float>>{};
+
+      pipes::zip(source1, source2, source3) >>= target;
+
+      CHECK(target == std::vector<std::tuple<int, std::string, float>>{
+                        {1, "a", 1.1},
+                        {2, "b", 2.2},
+                        {3, "c", 3.3}
+      });
+    }
+
+    SUBCASE("two sources, unpack into transform") 
+    {
+
+    }
     SUBCASE("one source, unpack into transform") {}
     SUBCASE("zero sources") {}
     SUBCASE("source with reference types") {}
