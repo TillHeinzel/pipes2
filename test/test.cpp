@@ -276,7 +276,7 @@ TEST_CASE("Sink and ValidSource concepts")
     static_assert(pipes::Sink<decltype(sink), std::string>);
     static_assert(!pipes::Sink<decltype(sink), int>);
 
-    auto sink2 = pipes::addBefore(pipes::DiscardSink{}, t);
+    auto sink2 = pipes::append(t, pipes::DiscardSink{});
     static_assert(pipes::Sink<decltype(sink2), std::string>);
     static_assert(!pipes::Sink<decltype(sink2), int>);
 

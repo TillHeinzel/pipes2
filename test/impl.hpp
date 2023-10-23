@@ -1,6 +1,6 @@
 #pragma once
 
-#define PIPES_FWD(...)                                                           \
+#define PIPES_FWD(...)                                                         \
   ->decltype(__VA_ARGS__) { return __VA_ARGS__; }
 
 namespace pipes
@@ -57,7 +57,7 @@ namespace pipes
 
   template<typename Chain, typename T>
   concept ValidChainFor =
-    Sink<decltype(addBefore(DiscardSink{}, std::declval<Chain>())), T>;
+    Sink<decltype(append(std::declval<Chain>(), DiscardSink{})), T>;
 
   template<typename S, typename Ops>
   concept ValidSource =
@@ -88,42 +88,54 @@ namespace pipes
 
 namespace pipes
 {
+  template<typename T, size_t... I>
+  auto reverse_impl(T&& t, std::index_sequence<I...>)
+  {
+    return std::make_tuple(
+      std::get<sizeof...(I) - 1 - I>(std::forward<T>(t))...);
+  }
+
+  template<typename T>
+  auto reverse(T&& t)
+  {
+    return reverse_impl(std::forward<T>(t),
+                        std::make_index_sequence<std::tuple_size<T>::value>());
+  }
+}
+
+namespace pipes
+{
   auto prepend(OpenSink auto s) -> decltype(s) { return s; }
 
   template<class Op, class... Ops>
   auto prepend(OpenSink auto s, Op op, Ops... ops)
     PIPES_FWD(prepend(Node{op, s}, ops...));
 
-  template<class... Ops>
-  auto addBefore(OpenSink auto s, RawNodes<Ops...> ops)
+  auto prepend_f(OpenSink auto s)
   {
-    auto f = [&](auto... n) { return prepend(s, n...); };
-    return std::apply(f, ops.ops);
+    return [s](auto... n) { return prepend(s, n...); };
   }
+
+  template<class... Ops>
+  auto append(RawNodes<Ops...> ops, OpenSink auto s)
+    PIPES_FWD(std::apply(prepend_f(s), ops.ops));
 
   template<class... Ops1, class... Ops2>
-  auto addBefore(RawNodes<Ops2...> ops2, RawNodes<Ops1...> ops1)
-  {
-    return RawNodes{std::tuple_cat(ops2.ops, ops1.ops)};
-  }
+  auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
+    PIPES_FWD(RawNodes{std::tuple_cat(ops2.ops, ops1.ops)});
 
   template<class... LaterOps, class... EarlierOps>
-  auto addBefore(RawNodes<LaterOps...> laterOps, Source<EarlierOps...> source)
-  {
-    return Source{source.root, addBefore(laterOps, source.ops)};
-  }
+  auto append(Source<EarlierOps...> source, RawNodes<LaterOps...> laterOps)
+    PIPES_FWD(Source{source.root, append(source.ops, laterOps)});
 
   template<class... Ops>
-  auto addBefore(auto sink, Source<Ops...> source)
-    PIPES_FWD(source.root.push(addBefore(sink, source.ops)));
-
-  template<class T1, class T2>
-  auto append(T1 t1, T2 t2) PIPES_FWD(addBefore(t2, t1));
+  auto append(Source<Ops...> source, auto sink)
+    PIPES_FWD(source.root.push(append(source.ops, sink)));
 } // namespace pipes
 
 namespace pipes
 {
   template<class... Ops>
   auto finish(Source<Ops...> source, auto sink)
-    PIPES_FWD(addBefore(sink, source));
+    PIPES_FWD(append(source, sink));
 } // namespace pipes
