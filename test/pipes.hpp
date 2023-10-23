@@ -42,3 +42,4 @@ namespace pipes::detail
 #include "Transform.hpp"
 
 #include "Discard.hpp"
+#include "Zip.hpp"

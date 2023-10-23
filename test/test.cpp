@@ -6,10 +6,42 @@
 
 #include "pipes.hpp"
 
+template<typename T>
+concept Streamable = requires(std::ostream& os, T value) {
+  {
+    os << value
+  } -> std::convertible_to<std::ostream&>;
+};
+
+template<typename... Ts, size_t... Is>
+std::ostream& println_tuple_impl(std::ostream& os,
+                                 std::tuple<Ts...> tuple,
+                                 std::index_sequence<Is...>)
+{
+  static_assert(sizeof...(Is) == sizeof...(Ts),
+                "Indices must have same number of elements as tuple types!");
+  static_assert(sizeof...(Ts) > 0, "Cannot insert empty tuple into stream.");
+  static constexpr auto last =
+    sizeof...(Ts) - 1; // assuming index sequence 0,...,N-1
+
+  return ((os << std::get<Is>(tuple) << (Is != last ? "," : "")), ...);
+}
+
 namespace std
 {
+  template<class... Ts>
+  std::ostream& operator<<(std::ostream& stream, std::tuple<Ts...> const& t)
+  {
+    stream << "<";
+    println_tuple_impl(stream, t, std::index_sequence_for<Ts...>{});
+    stream << ">";
+    return stream;
+  }
+
   template<class T>
   std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
+    requires(Streamable<T>)
+
   {
     stream << "{";
     if(!v.empty())
@@ -28,7 +60,6 @@ namespace std
 
 TEST_CASE("test")
 {
-
   SUBCASE("transform")
   {
     SUBCASE("Identity")
@@ -248,12 +279,13 @@ TEST_CASE("test")
     }
   }
 
-  SUBCASE("discard") {
+  SUBCASE("discard")
+  {
     auto const source = std::vector<int>{1, 2, 3, 4};
 
     source >>= pipes::discard();
   }
-  SUBCASE("drop n") {}
+
   SUBCASE("drop until") {}
   SUBCASE("fork") {}
   SUBCASE("join") {}
@@ -265,7 +297,59 @@ TEST_CASE("test")
   SUBCASE("tee") {}
   SUBCASE("unzip") {}
   SUBCASE("flatten") {}
+  SUBCASE("drop n") {}
+  SUBCASE("reduce") {}
 
+  SUBCASE("zip")
+  {
+    SUBCASE("single source")
+    {
+      SUBCASE("int")
+      {
+        auto const source = std::vector<int>{1, 2, 3};
+
+        auto target = std::vector<std::tuple<int>>{};
+
+        pipes::zip(source) >>= target;
+
+        CHECK(target == std::vector<std::tuple<int>>{{1}, {2}, {3}});
+      }
+
+      SUBCASE("string")
+      {
+        auto const source = std::vector<std::string>{"1", "2", "3"};
+
+        auto target = std::vector<std::tuple<std::string>>{};
+
+        pipes::zip(source) >>= target;
+
+        CHECK(target ==
+              std::vector<std::tuple<std::string>>{{"1"}, {"2"}, {"3"}});
+      }
+    }
+
+    SUBCASE("two source")
+    {
+       auto const source1 = std::vector<int>{1, 2, 3};
+       auto const source2 = std::vector<std::string>{"a", "b", "c"};
+
+       auto target = std::vector<std::tuple<int, std::string>>{};
+
+       pipes::zip(source1, source2) >>= target;
+
+       CHECK(target == std::vector<std::tuple<int, std::string>>{
+                         {1, "a"},
+                         {2, "b"},
+                         {3, "c"}
+       });
+    }
+
+    SUBCASE("three source") {}
+    SUBCASE("two subcases, unpack into transform") {}
+    SUBCASE("one source, unpack into transform") {}
+
+    //todo: work with different input sources, such as map
+  }
   SUBCASE("override") {}
   SUBCASE("set_aggregator") {}
   SUBCASE("map_aggregator") {}
@@ -282,4 +366,7 @@ TEST_CASE("test")
   // todo: allow temporaries as sources
   // todo: allow temporaries as targets, to be returned in the end
   // todo: different operators, including <<= >>= << >> |
+  // todo: move-only types
+  // todo: big types with lots of data (do not have to copy everything all the
+  // time) todo: generators and take-from for generator
 }
