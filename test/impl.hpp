@@ -132,10 +132,3 @@ namespace pipes
   auto append(Source<Ops...> source, auto sink)
     PIPES_FWD(source.root.push(append(source.ops, sink)));
 } // namespace pipes
-
-namespace pipes
-{
-  template<class... Ops>
-  auto finish(Source<Ops...> source, auto sink)
-    PIPES_FWD(append(source, sink));
-} // namespace pipes
