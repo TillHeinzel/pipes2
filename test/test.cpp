@@ -347,6 +347,7 @@ TEST_CASE("test")
     SUBCASE("three source") {}
     SUBCASE("two subcases, unpack into transform") {}
     SUBCASE("one source, unpack into transform") {}
+    SUBCASE("zero sources") {}
 
     //todo: work with different input sources, such as map
   }
