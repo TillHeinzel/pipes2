@@ -64,9 +64,6 @@ namespace pipes
   concept ValidSource =
     RootSource<S> && ValidChainFor<Ops, typename S::OutputType>;
 
-  template<typename X, typename T>
-  concept ValidReceiverFor = Sink<X, T> || ValidChainFor<X, T>;
-
   template<RootSource Root, class... Ops>
   struct Source
   {
@@ -79,6 +76,22 @@ namespace pipes
     Root root;
     RawNodes<Ops...> ops;
   };
+
+  template<class FinalSink, class... Ops>
+  struct PSink
+  {
+    FinalSink finalSink;
+    RawNodes<Ops...> ops;
+
+    auto collapse() const { return connect_links(ops, finalSink); }
+  };
+
+  template<class S, class T>
+  concept ValidPSink = Sink<decltype(std::declval<S>().collapse()), T>;
+
+  template<typename X, typename T>
+  concept ValidReceiverFor =
+    Sink<X, T> || ValidChainFor<X, T> || ValidPSink<X, T>;
 } // namespace pipes
 
 namespace pipes
@@ -125,6 +138,12 @@ namespace pipes
   {
     source.push(sink);
   }
+
+  template<class... Ops>
+  auto finish(RootSource auto source, RawNodes<Ops...> ops, auto finalSink)
+  {
+    finish(source, connect_links(ops, finalSink));
+  }
 } // namespace pipes
 
 namespace pipes
@@ -132,6 +151,10 @@ namespace pipes
   template<class... Ops>
   auto append(RawNodes<Ops...> ops, OpenSink auto sink)
     PIPES_FWD(connect_links(ops, sink));
+
+  template<class... Ops>
+  auto append(Source<Ops...> source, OpenSink auto sink)
+    PIPES_FWD(finish(source.root, append(source.ops, sink)));
 
   template<class... Ops1, class... Ops2>
   auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
@@ -141,7 +164,15 @@ namespace pipes
   auto append(Source<EarlierOps...> source, RawNodes<LaterOps...> laterOps)
     PIPES_FWD(Source{source.root, append(source.ops, laterOps)});
 
-  template<class... Ops>
-  auto append(Source<Ops...> source, OpenSink auto sink)
-    PIPES_FWD(finish(source.root, append(source.ops, sink)));
+} // namespace pipes
+
+namespace pipes
+{
+  template<class... Ops, class... Ts>
+  auto append(RawNodes<Ops...> ops, PSink<Ts...> sink)
+    PIPES_FWD(PSink{sink.finalSink, append(ops, sink.ops)});
+
+  template<class... T1s, class... T2s>
+  auto append(Source<T1s...> source, PSink<T2s...> sink) PIPES_FWD(
+    finish(source.root, append(source.ops, sink.ops), sink.finalSink));
 } // namespace pipes
