@@ -58,7 +58,7 @@ namespace pipes
 
   template<typename Chain, typename T>
   concept ValidChainFor =
-    Sink<decltype(append(std::declval<Chain>(), DummySink{})), T>;
+    Sink<decltype(connect_links(std::declval<Chain>(), DummySink{})), T>;
 
   template<typename S, typename Ops>
   concept ValidSource =
@@ -151,11 +151,10 @@ namespace pipes
   template<class... Ops>
   auto append(RawNodes<Ops...> ops, OpenSink auto sink)
     PIPES_FWD(connect_links(ops, sink));
+} // namespace pipes
 
-  template<class... Ops>
-  auto append(Source<Ops...> source, OpenSink auto sink)
-    PIPES_FWD(finish(source.root, append(source.ops, sink)));
-
+namespace pipes
+{
   template<class... Ops1, class... Ops2>
   auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
     PIPES_FWD(RawNodes{std::tuple_cat(ops1.ops, ops2.ops)});
@@ -164,10 +163,6 @@ namespace pipes
   auto append(Source<EarlierOps...> source, RawNodes<LaterOps...> laterOps)
     PIPES_FWD(Source{source.root, append(source.ops, laterOps)});
 
-} // namespace pipes
-
-namespace pipes
-{
   template<class... Ops, class... Ts>
   auto append(RawNodes<Ops...> ops, PSink<Ts...> sink)
     PIPES_FWD(PSink{sink.finalSink, append(ops, sink.ops)});

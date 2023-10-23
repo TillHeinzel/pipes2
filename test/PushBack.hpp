@@ -18,6 +18,6 @@ namespace pipes
 
   template<class T>
   auto push_back(std::vector<T>& v) { 
-    return PushBackSink<T>{v}; 
+    return PSink{PushBackSink<T>{v}, {}}; 
   }
 } // namespace pipes
