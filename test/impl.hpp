@@ -34,31 +34,12 @@ namespace pipes
 
 namespace pipes
 {
-  template<class... Ops>
-  struct Source
-  {
-    std::vector<int> const& root;
-    RawNodes<Ops...> ops;
-  };
-
-  // todo: generalize Sources to include others than just vectors
-  //  todo: put in checks, so that ops are required to be able to be called with
-  //  output of root. Can use a dummy-Sink to see if it works out somehow?
-
-} // namespace pipes
-
-namespace pipes
-{
-  template<class Op>
-  auto addBefore(OpenSink auto s, Op op)
-  {
-    return Node{op, s};
-  }
+  auto addBefore(OpenSink auto s) { return s; }
 
   template<class Op, class... Ops>
-  auto addBefore(OpenSink auto s, Op n, Ops... nodes)
+  auto addBefore(OpenSink auto s, Op op, Ops... ops)
   {
-    return addBefore(addBefore(s, n), nodes...);
+    return addBefore(Node{op, s}, ops...);
   }
 
   template<class... Ops>
@@ -72,5 +53,61 @@ namespace pipes
   auto addBefore(RawNodes<Ops2...> ops2, RawNodes<Ops1...> ops1)
   {
     return RawNodes{std::tuple_cat(ops2.ops, ops1.ops)};
+  }
+} // namespace pipes
+
+namespace pipes
+{
+
+  struct ForEachSource
+  {
+    static constexpr bool isRootSource = true;
+
+    std::vector<int> const& v;
+
+    void push(Sink<int> auto sink)
+    {
+      for(const int i : v) { sink.push(i); }
+    }
+  };
+
+  template<typename T>
+  concept RootSource = requires(T) { T::isRootSource; };
+
+  template<class... Ops>
+  struct Source
+  {
+    ForEachSource root;
+    RawNodes<Ops...> ops;
+  };
+
+  template<class... LaterOps, class... EarlierOps>
+  auto addBefore(RawNodes<LaterOps...> laterOps, Source<EarlierOps...> source)
+  {
+    return Source<LaterOps..., EarlierOps...>{source.root,
+                                              addBefore(laterOps, source.ops)};
+  }
+
+  // todo: generalize Sources to include others than just vectors
+  //  todo: put in checks, so that ops are required to be able to be called with
+  //  output of root. Can use a dummy-Sink to see if it works out somehow?
+  // todo: take in temporaries as valid sources, not just const&
+
+} // namespace pipes
+
+namespace pipes
+{
+  template<class... Ops>
+  void finish(Source<Ops...> source, Sink<int> auto sink)
+  {
+    source.root.push(addBefore(sink, source.ops));
+  }
+} // namespace pipes
+
+namespace pipes
+{
+  Source<> forEach(const std::vector<int>& v)
+  {
+    return Source<>{ForEachSource{v}};
   }
 } // namespace pipes

@@ -6,7 +6,6 @@
 
 #include "impl.hpp"
 
-
 namespace pipes
 {
   template<class... Op1, class... Op2>
@@ -22,31 +21,34 @@ namespace pipes
   }
 } // namespace pipes
 
+namespace pipes
+{
+  template<class... Ops>
+  void operator>>=(Source<Ops...> source, Sink<int> auto sink)
+  {
+    finish(source, sink);
+  }
+
+  template<class... Ops1, class... Ops2>
+  auto operator>>=(Source<Ops1...> source, RawNodes<Ops2...> ops)
+  {
+    return addBefore(ops, source);
+  }
+} // namespace pipes
+
 #include "PushBack.hpp"
 
 namespace pipes
 {
   template<class... Ops>
-  auto operator>>=(RawNodes<Ops...> n, std::vector<int>& v)
+  auto operator>>=(std::vector<int> const& v, RawNodes<Ops...> n)
   {
-    return n >>= PushBackSink{v};
+    return forEach(v) >>= n;
   }
 
   void operator>>=(std::vector<int> const& source, Sink<int> auto sink)
   {
-    for(const int i : source) { sink.push(i); }
-  }
-
-  template<class... Ops>
-  auto operator>>=(std::vector<int> const& source, RawNodes<Ops...> n) 
-  {
-    return Source{source, n};
-  }
-
-  template<class... Ops>
-  void operator>>=(Source<Ops...> source, Sink<int> auto sink)
-  {
-    return source.root >>= (source.ops >>= sink);
+    forEach(source) >>= sink;
   }
 
   template<class... Ops>
@@ -54,8 +56,13 @@ namespace pipes
   {
     return source >>= PushBackSink{v};
   }
-} // namespace pipes
 
+  template<class... Ops>
+  auto operator>>=(RawNodes<Ops...> n, std::vector<int>& v)
+  {
+    return n >>= PushBackSink{v};
+  }
+} // namespace pipes
 
 #include "Filter.hpp"
 #include "Transform.hpp"
