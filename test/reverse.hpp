@@ -2,7 +2,7 @@
 
 #include <tuple>
 
-namespace pipes
+namespace pipes::detail
 {
   template<typename T, size_t... I>
   auto reverse_impl(T&& t, std::index_sequence<I...>)

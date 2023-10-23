@@ -6,7 +6,7 @@
 
 #include "forUI.hpp"
 
-namespace pipes
+namespace pipes::detail
 {
   auto operator>>=(auto source, auto sink)
     PIPES_FWD(append(source, sink));
@@ -16,6 +16,11 @@ namespace pipes
 #include "PushBack.hpp"
 
 namespace pipes
+{
+  using namespace detail::api;
+}
+
+namespace pipes::detail
 {
   template<class T>
   auto operator>>=(std::vector<T> const& v, ValidReceiverFor<T> auto n)
@@ -27,8 +32,11 @@ namespace pipes
 
   template<class T, class... Ops>
   auto operator>>=(RawNodes<Ops...> n, std::vector<T>& v)
-    PIPES_FWD(n >>= push_back(v));
+  {
+    return n >>= push_back(v);
+  }
 } // namespace pipes
+
 
 #include "Filter.hpp"
 #include "Transform.hpp"

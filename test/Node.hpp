@@ -2,7 +2,7 @@
 
 #include "FWD.hpp"
 
-namespace pipes
+namespace pipes::detail
 {
   template<typename O, class Next, class T>
   concept Operation = requires(O op, Next& next, T t) { op.push(next, t); };
@@ -25,7 +25,7 @@ namespace pipes
 #include "reverse.hpp"
 #include "RawNodes.hpp"
 
-namespace pipes
+namespace pipes::detail
 {
   auto connect_links_impl(auto s) -> decltype(s) { return s; }
 

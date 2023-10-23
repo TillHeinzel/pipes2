@@ -4,7 +4,7 @@
 
 #include "impl.hpp"
 
-namespace pipes
+namespace pipes::detail
 {
   template<class T>
   struct ForEachSource
@@ -19,9 +19,12 @@ namespace pipes
     }
   };
 
-  template<class T>
-  auto forEach(const std::vector<T>& v)
+  namespace api
   {
-    return Source<ForEachSource<T>>{ForEachSource<T>{v}, {}};
-  }
-} // namespace pipes
+    template<class T>
+    auto forEach(const std::vector<T>& v)
+    {
+      return Source<ForEachSource<T>>{ForEachSource<T>{v}, {}};
+    }
+  } // namespace api
+} // namespace pipes::detail

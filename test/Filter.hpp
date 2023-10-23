@@ -2,7 +2,7 @@
 
 #include "impl.hpp"
 
-namespace pipes
+namespace pipes::detail
 {
   template<class F>
   struct Filter
@@ -16,9 +16,12 @@ namespace pipes
     }
   };
 
-  template<typename F>
-  RawNodes<Filter<F>> filter(F f)
+  namespace api
   {
-    return RawNodes{Filter{f}};
-  }
+    template<typename F>
+    RawNodes<Filter<F>> filter(F f)
+    {
+      return RawNodes{Filter{f}};
+    }
+  } // namespace api
 } // namespace pipes

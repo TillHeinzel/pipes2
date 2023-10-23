@@ -249,6 +249,34 @@ TEST_CASE("test")
     }
   }
 
-  // different operators, including <<= >>= << >>
-  // additional pipes: reduce, flatten,
+  SUBCASE("discard") {}
+  SUBCASE("drop n") {}
+  SUBCASE("drop until") {}
+  SUBCASE("fork") {}
+  SUBCASE("join") {}
+  SUBCASE("partition") {}
+  SUBCASE("switch") {}
+  SUBCASE("stride") {}
+  SUBCASE("take") {}
+  SUBCASE("take while") {}
+  SUBCASE("tee") {}
+  SUBCASE("unzip") {}
+  SUBCASE("flatten") {}
+
+  SUBCASE("override") {}
+  SUBCASE("set_aggregator") {}
+  SUBCASE("map_aggregator") {}
+  SUBCASE("from istream") {}
+  SUBCASE("to ostream") {}
+
+  SUBCASE("combinations with self") {}
+  SUBCASE("combinations between two (cartesian product)") {}
+  SUBCASE("Adjacent") {}
+  SUBCASE("mux") {}
+
+  // todo: work with maps
+  // todo: work with sets
+  // todo: allow temporaries as sources
+  // todo: allow temporaries as targets, to be returned in the end
+  // todo: different operators, including <<= >>= << >> |
 }

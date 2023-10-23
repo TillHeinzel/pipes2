@@ -4,7 +4,7 @@
 
 #include "impl.hpp"
 
-namespace pipes
+namespace pipes::detail
 {
   template<class T>
   struct PushBackSink
@@ -14,8 +14,12 @@ namespace pipes
     void push(T t) { v.push_back(t); }
   };
 
-  template<class T>
-  auto push_back(std::vector<T>& v) { 
-    return PSink{PushBackSink<T>{v}, {}}; 
-  }
-} // namespace pipes
+  namespace api
+  {
+    template<class T>
+    auto push_back(std::vector<T>& v)
+    {
+      return Sink{PushBackSink<T>{v}, {}};
+    }
+  } // namespace api
+} // namespace pipes::detail

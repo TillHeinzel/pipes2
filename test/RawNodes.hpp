@@ -1,7 +1,7 @@
 #pragma once
 
 
-namespace pipes
+namespace pipes::detail
 {
   template<class... Ops>
   struct RawNodes

@@ -3,26 +3,20 @@
 #include "FWD.hpp"
 #include "Node.hpp"
 
-namespace pipes
+namespace pipes::detail
 {
   template<typename T, class I>
   concept SinkFor = requires(T t, I i) { t.push(i); };
 
   template<class FinalSink, class... Ops>
-  struct PSink
+  struct Sink
   {
     FinalSink finalSink;
     RawNodes<Ops...> ops;
-
-    auto collapse() const { return connect_links(ops, finalSink); }
   };
-
-  template<class S, class T>
-  concept ValidSink = SinkFor<decltype(std::declval<S>().collapse()), T>;
-
 } // namespace pipes
 
-namespace pipes
+namespace pipes::detail
 {
   template<typename S>
   concept RootSource = requires(S) { typename S::OutputType; };
