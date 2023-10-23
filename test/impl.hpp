@@ -98,10 +98,12 @@ namespace pipes
   template<typename T>
   auto reverse(T&& t)
   {
-    return reverse_impl(std::forward<T>(t),
-                        std::make_index_sequence<std::tuple_size<T>::value>());
+    return reverse_impl(
+      std::forward<T>(t),
+      std::make_index_sequence<
+        std::tuple_size<std::remove_reference_t<T>>::value>());
   }
-}
+} // namespace pipes
 
 namespace pipes
 {
@@ -118,11 +120,11 @@ namespace pipes
 
   template<class... Ops>
   auto append(RawNodes<Ops...> ops, OpenSink auto s)
-    PIPES_FWD(std::apply(prepend_f(s), ops.ops));
+    PIPES_FWD(std::apply(prepend_f(s), reverse(ops.ops)));
 
   template<class... Ops1, class... Ops2>
   auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
-    PIPES_FWD(RawNodes{std::tuple_cat(ops2.ops, ops1.ops)});
+    PIPES_FWD(RawNodes{std::tuple_cat(ops1.ops, ops2.ops)});
 
   template<class... LaterOps, class... EarlierOps>
   auto append(Source<EarlierOps...> source, RawNodes<LaterOps...> laterOps)

@@ -42,7 +42,7 @@ TEST_CASE("test")
 
         source >>= pipes::transform([](int i) { return i; }) >>= target;
 
-        REQUIRE(target.empty());
+        CHECK(target.empty());
       }
 
       SUBCASE("one int")
@@ -53,7 +53,7 @@ TEST_CASE("test")
 
         source >>= pipes::transform([](int i) { return i; }) >>= target;
 
-        REQUIRE(target == source);
+        CHECK(target == source);
       }
 
       SUBCASE("multiple ints")
@@ -64,7 +64,7 @@ TEST_CASE("test")
 
         source >>= pipes::transform([](int i) { return i; }) >>= target;
 
-        REQUIRE(target == source);
+        CHECK(target == source);
       }
     }
 
@@ -76,7 +76,7 @@ TEST_CASE("test")
 
       source >>= pipes::transform([](int i) { return 2 * i; }) >>= target;
 
-      REQUIRE(target == std::vector{2, 4, 6, 8, 10});
+      CHECK(target == std::vector{2, 4, 6, 8, 10});
     }
 
     SUBCASE("chained transforms")
@@ -88,7 +88,7 @@ TEST_CASE("test")
       source >>= pipes::transform([](int i) { return 2 * i; }) >>=
         pipes::transform([](int i) { return i + 1; }) >>= target;
 
-      REQUIRE(target == std::vector{3, 5, 7, 9, 11});
+      CHECK(target == std::vector{3, 5, 7, 9, 11});
     }
 
     SUBCASE("string")
@@ -102,7 +102,7 @@ TEST_CASE("test")
 
       source >>= intermediate;
 
-      REQUIRE(target == std::vector<std::string>{"1;", "2;", "3;"});
+      CHECK(target == std::vector<std::string>{"1;", "2;", "3;"});
     }
   }
 
@@ -116,7 +116,7 @@ TEST_CASE("test")
 
       source >>= pipes::filter([](int i) { return false; }) >>= target;
 
-      REQUIRE(target.empty());
+      CHECK(target.empty());
     }
 
     SUBCASE("nonempty all good")
@@ -127,7 +127,7 @@ TEST_CASE("test")
 
       source >>= pipes::filter([](int i) { return true; }) >>= target;
 
-      REQUIRE(target == source);
+      CHECK(target == source);
     }
 
     SUBCASE("only odd")
@@ -138,7 +138,7 @@ TEST_CASE("test")
 
       source >>= pipes::filter([](int i) { return i % 2 == 1; }) >>= target;
 
-      REQUIRE(target == std::vector{1, 3, 5});
+      CHECK(target == std::vector{1, 3, 5});
     }
   }
 
@@ -153,7 +153,7 @@ TEST_CASE("test")
       source >>= pipes::filter([](int i) { return i % 2 == 1; }) >>=
         pipes::transform([](int i) { return 2 * i; }) >>= target;
 
-      REQUIRE(target == std::vector{2, 6, 10});
+      CHECK(target == std::vector{2, 6, 10});
     }
 
     SUBCASE("prepare open sink")
@@ -167,7 +167,7 @@ TEST_CASE("test")
 
       source >>= sink;
 
-      REQUIRE(target == std::vector{2, 6, 10});
+      CHECK(target == std::vector{2, 6, 10});
     }
 
     SUBCASE("prepare operations-chain with 2 ops")
@@ -181,7 +181,7 @@ TEST_CASE("test")
 
       source >>= chain >>= target;
 
-      REQUIRE(target == std::vector{2, 6, 10});
+      CHECK(target == std::vector{2, 6, 10});
     }
 
     SUBCASE("prepare operations-chain with 3 ops")
@@ -196,7 +196,7 @@ TEST_CASE("test")
 
       source >>= chain >>= target;
 
-      REQUIRE(target == std::vector{3, 7, 11});
+      CHECK(target == std::vector{3, 7, 11});
     }
 
     SUBCASE("prepare source without sink")
@@ -214,7 +214,7 @@ TEST_CASE("test")
         auto const source = orig >>= chain;
         source >>= target;
 
-        REQUIRE(target == std::vector{3, 7, 11});
+        CHECK(target == std::vector{3, 7, 11});
       }
       SUBCASE("string")
       {
@@ -227,7 +227,7 @@ TEST_CASE("test")
         auto const source = orig >>= chain;
         source >>= target;
 
-        REQUIRE(target == std::vector<std::string>{"1;", "3;"});
+        CHECK(target == std::vector<std::string>{"1;", "3;"});
       }
     }
 
@@ -245,7 +245,7 @@ TEST_CASE("test")
 
       source >>= target;
 
-      REQUIRE(target == std::vector{3, 7, 11});
+      CHECK(target == std::vector{3, 7, 11});
     }
   }
 
