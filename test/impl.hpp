@@ -42,12 +42,6 @@ namespace pipes
   template<typename T>
   concept OpenSink = requires(T) { T::isOpenSink; };
 
-  struct DiscardSink
-  {
-    static constexpr bool isOpenSink = true;
-
-    void push(auto i) {}
-  };
 } // namespace pipes
 
 namespace pipes
@@ -55,9 +49,16 @@ namespace pipes
   template<typename S>
   concept RootSource = requires(S) { typename S::OutputType; };
 
+  struct DummySink
+  {
+    static constexpr bool isOpenSink = true;
+
+    void push(auto i) {}
+  };
+
   template<typename Chain, typename T>
   concept ValidChainFor =
-    Sink<decltype(append(std::declval<Chain>(), DiscardSink{})), T>;
+    Sink<decltype(append(std::declval<Chain>(), DummySink{})), T>;
 
   template<typename S, typename Ops>
   concept ValidSource =
@@ -78,12 +79,6 @@ namespace pipes
     Root root;
     RawNodes<Ops...> ops;
   };
-
-  // todo: generalize Sources to include others than just vectors
-  //  todo: put in checks, so that ops are required to be able to be called with
-  //  output of root. Can use a dummy-Sink to see if it works out somehow?
-  // todo: take in temporaries as valid sources, not just const&
-
 } // namespace pipes
 
 namespace pipes
@@ -107,20 +102,36 @@ namespace pipes
 
 namespace pipes
 {
-  auto prepend(OpenSink auto s) -> decltype(s) { return s; }
+  auto connect_links_impl(OpenSink auto s) -> decltype(s) { return s; }
 
   template<class Op, class... Ops>
-  auto prepend(OpenSink auto s, Op op, Ops... ops)
-    PIPES_FWD(prepend(Node{op, s}, ops...));
+  auto connect_links_impl(OpenSink auto s, Op op, Ops... ops)
+    PIPES_FWD(connect_links_impl(Node{op, s}, ops...));
 
-  auto prepend_f(OpenSink auto s)
+  auto connect_links_f(OpenSink auto s)
   {
-    return [s](auto... n) { return prepend(s, n...); };
+    return [s](auto... n) { return connect_links_impl(s, n...); };
   }
 
   template<class... Ops>
-  auto append(RawNodes<Ops...> ops, OpenSink auto s)
-    PIPES_FWD(std::apply(prepend_f(s), reverse(ops.ops)));
+  auto connect_links(RawNodes<Ops...> ops, OpenSink auto s)
+    PIPES_FWD(std::apply(connect_links_f(s), reverse(ops.ops)));
+} // namespace pipes
+
+namespace pipes
+{
+  template<RootSource S>
+  auto finish(S source, Sink<typename S::OutputType> auto sink)
+  {
+    source.push(sink);
+  }
+} // namespace pipes
+
+namespace pipes
+{
+  template<class... Ops>
+  auto append(RawNodes<Ops...> ops, OpenSink auto sink)
+    PIPES_FWD(connect_links(ops, sink));
 
   template<class... Ops1, class... Ops2>
   auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
@@ -131,6 +142,6 @@ namespace pipes
     PIPES_FWD(Source{source.root, append(source.ops, laterOps)});
 
   template<class... Ops>
-  auto append(Source<Ops...> source, auto sink)
-    PIPES_FWD(source.root.push(append(source.ops, sink)));
+  auto append(Source<Ops...> source, OpenSink auto sink)
+    PIPES_FWD(finish(source.root, append(source.ops, sink)));
 } // namespace pipes

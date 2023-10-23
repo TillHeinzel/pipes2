@@ -261,7 +261,7 @@ TEST_CASE("Sink and ValidSource concepts")
     auto t = pipes::transform([](int i) { return 2 * i; });
     static_assert(!pipes::Sink<decltype(t), int>);
 
-    auto sink = t >>= pipes::DiscardSink{};
+    auto sink = t >>= pipes::DummySink{};
     static_assert(pipes::Sink<decltype(sink), int>);
     static_assert(!pipes::Sink<decltype(sink), std::string>);
   }
@@ -272,11 +272,11 @@ TEST_CASE("Sink and ValidSource concepts")
     static_assert(!pipes::Sink<decltype(t), int>);
     static_assert(!pipes::Sink<decltype(t), std::string>);
 
-    auto sink = t >>= pipes::DiscardSink{};
+    auto sink = t >>= pipes::DummySink{};
     static_assert(pipes::Sink<decltype(sink), std::string>);
     static_assert(!pipes::Sink<decltype(sink), int>);
 
-    auto sink2 = pipes::append(t, pipes::DiscardSink{});
+    auto sink2 = pipes::append(t, pipes::DummySink{});
     static_assert(pipes::Sink<decltype(sink2), std::string>);
     static_assert(!pipes::Sink<decltype(sink2), int>);
 
