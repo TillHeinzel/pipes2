@@ -9,7 +9,7 @@ namespace pipes
   template<class T>
   struct ForEachSource
   {
-    static constexpr bool isRootSource = true;
+    using OutputType = T;
 
     std::vector<T> const& v;
 
@@ -22,6 +22,6 @@ namespace pipes
   template<class T>
   auto forEach(const std::vector<T>& v)
   {
-    return Source{ForEachSource{v}, {}};
+    return Source<ForEachSource<T>>{ForEachSource<T>{v}, {}};
   }
 } // namespace pipes

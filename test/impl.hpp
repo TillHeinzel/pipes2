@@ -50,13 +50,14 @@ namespace pipes
 namespace pipes
 {
   template<typename T>
-  concept RootSource = requires(T) { T::isRootSource; };
+  concept RootSource = requires(T) { typename T::OutputType; };
 
   template<typename T, typename Ops>
   concept ValidSource =
-    Sink<decltype(addBefore(DiscardSink{}, std::declval<Ops>())), int>;
-  ;
-
+    RootSource<T> &&
+    Sink<decltype(addBefore(DiscardSink{}, std::declval<Ops>())),
+         typename T::OutputType>;
+  
   template<RootSource Root, class... Ops>
   struct Source
   {
@@ -65,6 +66,7 @@ namespace pipes
       : root(root), ops(ops)
     {
     }
+
 
     Root root;
     RawNodes<Ops...> ops;
@@ -114,8 +116,8 @@ namespace pipes
   void finish(Source<Ops...> source, Sink<int> auto sink)
   {
     source.root.push(addBefore(sink, source.ops));
-  }  
-  
+  }
+
   template<class... Ops>
   void finish(Source<Ops...> source, Sink<std::string> auto sink)
   {
