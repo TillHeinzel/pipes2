@@ -6,19 +6,6 @@
 
 namespace pipes::detail
 {
-  template<class T>
-  struct Zip
-  {
-    using OutputType = std::tuple<T>;
-
-    std::vector<T> const& v;
-
-    void push(SinkFor<std::tuple<T>> auto sink)
-    {
-      for(auto const& t : v) { sink.push(std::tuple{t}); }
-    }
-  };
-
   template<class... Ts, class F, std::size_t... Is>
   auto tuple_transform_impl(std::tuple<Ts...>& t,
                             F const& f,
@@ -48,7 +35,7 @@ namespace pipes::detail
   }
 
   template<class... Ts>
-  struct Zip2
+  struct Zip
   {
     using OutputType = std::tuple<Ts...>;
 
@@ -75,12 +62,8 @@ namespace pipes::detail
 
   namespace api
   {
-    template<class T>
-    auto zip(const std::vector<T>& v) PIPES_FWD(Source{Zip{v}});
-
-    template<class T1, class T2>
-    auto zip(std::vector<T1> const& v1, std::vector<T2> const& v2)
-      PIPES_FWD(Source{Zip2{std::tie(v1, v2)}});
-
+    template<class... Ts>
+    auto zip(std::vector<Ts> const&... vs)
+      PIPES_FWD(Source{Zip{std::tie(vs...)}});
   } // namespace api
 } // namespace pipes::detail

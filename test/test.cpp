@@ -328,7 +328,7 @@ TEST_CASE("test")
       }
     }
 
-    SUBCASE("two source")
+    SUBCASE("two sources")
     {
       auto const source1 = std::vector<int>{1, 2, 3};
       auto const source2 = std::vector<std::string>{"a", "b", "c"};
@@ -344,14 +344,15 @@ TEST_CASE("test")
       });
     }
 
-    SUBCASE("two source, different lengths") {}
-    SUBCASE("three source") {}
-    SUBCASE("two subcases, unpack into transform") {}
+    SUBCASE("two sources, different lengths") {}
+    SUBCASE("three sources") {}
+    SUBCASE("two sources, unpack into transform") {}
     SUBCASE("one source, unpack into transform") {}
     SUBCASE("zero sources") {}
     SUBCASE("source with reference types") {}
 
-    // todo: work with different input sources, such as map
+    // todo: work with different input sources, such as map, not just vectors.
+    // Just need to be iterable
   }
   SUBCASE("override") {}
   SUBCASE("set_aggregator") {}
