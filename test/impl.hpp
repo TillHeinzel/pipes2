@@ -11,8 +11,6 @@ namespace pipes
   template<class Op, class Next>
   struct Node
   {
-    static constexpr bool isOpenSink = true;
-
     Op op;
     Next next;
 
@@ -37,11 +35,7 @@ namespace pipes
 namespace pipes
 {
   template<typename T, class I>
-  concept Sink = requires(T t, I i) { t.push(i); };
-
-  template<typename T>
-  concept OpenSink = requires(T) { T::isOpenSink; };
-
+  concept SinkFor = requires(T t, I i) { t.push(i); };
 } // namespace pipes
 
 namespace pipes
@@ -58,7 +52,7 @@ namespace pipes
 
   template<typename Chain, typename T>
   concept ValidChainFor =
-    Sink<decltype(connect_links(std::declval<Chain>(), DummySink{})), T>;
+    SinkFor<decltype(connect_links(std::declval<Chain>(), DummySink{})), T>;
 
   template<typename S, typename Ops>
   concept ValidSource =
@@ -87,11 +81,11 @@ namespace pipes
   };
 
   template<class S, class T>
-  concept ValidPSink = Sink<decltype(std::declval<S>().collapse()), T>;
+  concept ValidPSink = SinkFor<decltype(std::declval<S>().collapse()), T>;
 
   template<typename X, typename T>
   concept ValidReceiverFor =
-    Sink<X, T> || ValidChainFor<X, T> || ValidPSink<X, T>;
+    ValidChainFor<X, T> || ValidPSink<X, T>;
 } // namespace pipes
 
 namespace pipes
@@ -115,26 +109,26 @@ namespace pipes
 
 namespace pipes
 {
-  auto connect_links_impl(OpenSink auto s) -> decltype(s) { return s; }
+  auto connect_links_impl(auto s) -> decltype(s) { return s; }
 
   template<class Op, class... Ops>
-  auto connect_links_impl(OpenSink auto s, Op op, Ops... ops)
+  auto connect_links_impl(auto s, Op op, Ops... ops)
     PIPES_FWD(connect_links_impl(Node{op, s}, ops...));
 
-  auto connect_links_f(OpenSink auto s)
+  auto connect_links_f(auto s)
   {
     return [s](auto... n) { return connect_links_impl(s, n...); };
   }
 
   template<class... Ops>
-  auto connect_links(RawNodes<Ops...> ops, OpenSink auto s)
+  auto connect_links(RawNodes<Ops...> ops, auto s)
     PIPES_FWD(std::apply(connect_links_f(s), reverse(ops.ops)));
 } // namespace pipes
 
 namespace pipes
 {
   template<RootSource S>
-  auto finish(S source, Sink<typename S::OutputType> auto sink)
+  auto finish(S source, SinkFor<typename S::OutputType> auto sink)
   {
     source.push(sink);
   }
@@ -148,20 +142,13 @@ namespace pipes
 
 namespace pipes
 {
-  template<class... Ops>
-  auto append(RawNodes<Ops...> ops, OpenSink auto sink)
-    PIPES_FWD(connect_links(ops, sink));
-} // namespace pipes
-
-namespace pipes
-{
   template<class... Ops1, class... Ops2>
   auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
     PIPES_FWD(RawNodes{std::tuple_cat(ops1.ops, ops2.ops)});
 
-  template<class... LaterOps, class... EarlierOps>
-  auto append(Source<EarlierOps...> source, RawNodes<LaterOps...> laterOps)
-    PIPES_FWD(Source{source.root, append(source.ops, laterOps)});
+  template<class... Ts, class... Ops>
+  auto append(Source<Ts...> source, RawNodes<Ops...> ops)
+    PIPES_FWD(Source{source.root, append(source.ops, ops)});
 
   template<class... Ops, class... Ts>
   auto append(RawNodes<Ops...> ops, PSink<Ts...> sink)

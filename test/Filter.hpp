@@ -10,7 +10,7 @@ namespace pipes
     F f;
 
     template<class T>
-    void push(Sink<T> auto& next, T const& t)
+    void push(SinkFor<T> auto& next, T const& t)
     {
       if(f(t)) next.push(t);
     }

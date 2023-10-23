@@ -13,7 +13,7 @@ namespace pipes
 
     std::vector<T> const& v;
 
-    void push(Sink<T> auto sink)
+    void push(SinkFor<T> auto sink)
     {
       for(T const& t : v) { sink.push(t); }
     }
