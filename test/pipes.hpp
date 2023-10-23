@@ -37,6 +37,7 @@ namespace pipes
 } // namespace pipes
 
 #include "PushBack.hpp"
+#include "ForEach.hpp"
 
 namespace pipes
 {

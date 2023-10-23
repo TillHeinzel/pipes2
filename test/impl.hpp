@@ -58,34 +58,20 @@ namespace pipes
 
 namespace pipes
 {
-
-  struct ForEachSource
-  {
-    static constexpr bool isRootSource = true;
-
-    std::vector<int> const& v;
-
-    void push(Sink<int> auto sink)
-    {
-      for(const int i : v) { sink.push(i); }
-    }
-  };
-
   template<typename T>
   concept RootSource = requires(T) { T::isRootSource; };
 
-  template<class... Ops>
+  template<RootSource Root, class... Ops>
   struct Source
   {
-    ForEachSource root;
+    Root root;
     RawNodes<Ops...> ops;
   };
 
   template<class... LaterOps, class... EarlierOps>
   auto addBefore(RawNodes<LaterOps...> laterOps, Source<EarlierOps...> source)
   {
-    return Source<LaterOps..., EarlierOps...>{source.root,
-                                              addBefore(laterOps, source.ops)};
+    return Source{source.root, addBefore(laterOps, source.ops)};
   }
 
   // todo: generalize Sources to include others than just vectors
@@ -104,10 +90,3 @@ namespace pipes
   }
 } // namespace pipes
 
-namespace pipes
-{
-  Source<> forEach(const std::vector<int>& v)
-  {
-    return Source<>{ForEachSource{v}};
-  }
-} // namespace pipes
