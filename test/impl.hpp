@@ -1,41 +1,25 @@
 #pragma once
 
-#define PIPES_FWD(...)                                                         \
-  ->decltype(__VA_ARGS__) { return __VA_ARGS__; }
-
-namespace pipes
-{
-  template<typename O, class Next, class T>
-  concept Operation = requires(O op, Next& next, T t) { op.push(next, t); };
-
-  template<class Op, class Next>
-  struct Node
-  {
-    Op op;
-    Next next;
-
-    template<class T>
-      requires(Operation<Op, Next, T>)
-    void push(T t)
-    {
-      op.push(next, t);
-    }
-  };
-
-  template<class... Ops>
-  struct RawNodes
-  {
-    RawNodes(Ops... ops) : ops(ops...) {}
-    RawNodes(std::tuple<Ops...> ops) : ops(ops) {}
-
-    std::tuple<Ops...> ops;
-  };
-} // namespace pipes
+#include "FWD.hpp"
+#include "Node.hpp"
 
 namespace pipes
 {
   template<typename T, class I>
   concept SinkFor = requires(T t, I i) { t.push(i); };
+
+  template<class FinalSink, class... Ops>
+  struct PSink
+  {
+    FinalSink finalSink;
+    RawNodes<Ops...> ops;
+
+    auto collapse() const { return connect_links(ops, finalSink); }
+  };
+
+  template<class S, class T>
+  concept ValidSink = SinkFor<decltype(std::declval<S>().collapse()), T>;
+
 } // namespace pipes
 
 namespace pipes
@@ -45,9 +29,7 @@ namespace pipes
 
   struct DummySink
   {
-    static constexpr bool isOpenSink = true;
-
-    void push(auto i) {}
+    void push(auto const&) {}
   };
 
   template<typename Chain, typename T>
@@ -71,90 +53,4 @@ namespace pipes
     RawNodes<Ops...> ops;
   };
 
-  template<class FinalSink, class... Ops>
-  struct PSink
-  {
-    FinalSink finalSink;
-    RawNodes<Ops...> ops;
-
-    auto collapse() const { return connect_links(ops, finalSink); }
-  };
-
-  template<class S, class T>
-  concept ValidPSink = SinkFor<decltype(std::declval<S>().collapse()), T>;
-
-  template<typename X, typename T>
-  concept ValidReceiverFor =
-    ValidChainFor<X, T> || ValidPSink<X, T>;
-} // namespace pipes
-
-namespace pipes
-{
-  template<typename T, size_t... I>
-  auto reverse_impl(T&& t, std::index_sequence<I...>)
-  {
-    return std::make_tuple(
-      std::get<sizeof...(I) - 1 - I>(std::forward<T>(t))...);
-  }
-
-  template<typename T>
-  auto reverse(T&& t)
-  {
-    return reverse_impl(
-      std::forward<T>(t),
-      std::make_index_sequence<
-        std::tuple_size<std::remove_reference_t<T>>::value>());
-  }
-} // namespace pipes
-
-namespace pipes
-{
-  auto connect_links_impl(auto s) -> decltype(s) { return s; }
-
-  template<class Op, class... Ops>
-  auto connect_links_impl(auto s, Op op, Ops... ops)
-    PIPES_FWD(connect_links_impl(Node{op, s}, ops...));
-
-  auto connect_links_f(auto s)
-  {
-    return [s](auto... n) { return connect_links_impl(s, n...); };
-  }
-
-  template<class... Ops>
-  auto connect_links(RawNodes<Ops...> ops, auto s)
-    PIPES_FWD(std::apply(connect_links_f(s), reverse(ops.ops)));
-} // namespace pipes
-
-namespace pipes
-{
-  template<RootSource S>
-  auto finish(S source, SinkFor<typename S::OutputType> auto sink)
-  {
-    source.push(sink);
-  }
-
-  template<class... Ops>
-  auto finish(RootSource auto source, RawNodes<Ops...> ops, auto finalSink)
-  {
-    finish(source, connect_links(ops, finalSink));
-  }
-} // namespace pipes
-
-namespace pipes
-{
-  template<class... Ops1, class... Ops2>
-  auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
-    PIPES_FWD(RawNodes{std::tuple_cat(ops1.ops, ops2.ops)});
-
-  template<class... Ts, class... Ops>
-  auto append(Source<Ts...> source, RawNodes<Ops...> ops)
-    PIPES_FWD(Source{source.root, append(source.ops, ops)});
-
-  template<class... Ops, class... Ts>
-  auto append(RawNodes<Ops...> ops, PSink<Ts...> sink)
-    PIPES_FWD(PSink{sink.finalSink, append(ops, sink.ops)});
-
-  template<class... T1s, class... T2s>
-  auto append(Source<T1s...> source, PSink<T2s...> sink) PIPES_FWD(
-    finish(source.root, append(source.ops, sink.ops), sink.finalSink));
 } // namespace pipes
