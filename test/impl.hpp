@@ -55,13 +55,16 @@ namespace pipes
   template<typename S>
   concept RootSource = requires(S) { typename S::OutputType; };
 
-
+  template<typename Chain, typename T>
+  concept ValidChainFor =
+    Sink<decltype(addBefore(DiscardSink{}, std::declval<Chain>())), T>;
 
   template<typename S, typename Ops>
   concept ValidSource =
-    RootSource<S> &&
-    Sink<decltype(addBefore(DiscardSink{}, std::declval<Ops>())),
-         typename S::OutputType>;
+    RootSource<S> && ValidChainFor<Ops, typename S::OutputType>;
+
+  template<typename X, typename T>
+  concept ValidReceiverFor = Sink<X, T> || ValidChainFor<X, T>;
 
   template<RootSource Root, class... Ops>
   struct Source

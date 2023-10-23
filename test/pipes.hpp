@@ -34,26 +34,16 @@ namespace pipes
 namespace pipes
 {
   template<class T>
-  void operator>>=(std::vector<T> const& v, Sink<T> auto sink)
-  {
-    forEach(v) >>= sink;
-  }
-
-  template<class T>
-  auto operator>>=(std::vector<T> const& v, auto n)
+  auto operator>>=(std::vector<T> const& v, ValidReceiverFor<T> auto n)
     PIPES_FWD(forEach(v) >>= n);
 
-  template<class... Ops>
-  void operator>>=(Source<Ops...> source, std::vector<int>& v)
-  {
-    return source >>= push_back(v);
-  }
+  template<class T, class... Ops>
+  auto operator>>=(Source<Ops...> source, std::vector<T>& v)
+    PIPES_FWD(source >>= push_back(v));
 
   template<class T, class... Ops>
   auto operator>>=(RawNodes<Ops...> n, std::vector<T>& v)
-  {
-    return n >>= push_back(v);
-  }
+    PIPES_FWD(n >>= push_back(v));
 } // namespace pipes
 
 #include "Filter.hpp"

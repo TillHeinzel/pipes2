@@ -102,7 +102,7 @@ TEST_CASE("test")
 
       source >>= intermediate;
 
-       REQUIRE(target == std::vector<std::string>{"1;", "2;", "3;"});
+      REQUIRE(target == std::vector<std::string>{"1;", "2;", "3;"});
     }
   }
 
@@ -201,18 +201,34 @@ TEST_CASE("test")
 
     SUBCASE("prepare source without sink")
     {
-      auto chain = pipes::filter([](int i) { return i % 2 == 1; }) >>=
-        pipes::transform([](int i) { return 2 * i; }) >>=
-        pipes::transform([](int i) { return i + 1; });
+      SUBCASE("int")
+      {
+        auto chain = pipes::filter([](int i) { return i % 2 == 1; }) >>=
+          pipes::transform([](int i) { return 2 * i; }) >>=
+          pipes::transform([](int i) { return i + 1; });
 
-      auto target = std::vector<int>{};
+        auto target = std::vector<int>{};
 
-      auto const orig = std::vector<int>{1, 2, 3, 4, 5};
+        auto const orig = std::vector<int>{1, 2, 3, 4, 5};
 
-      auto const source = orig >>= chain;
-      source >>= target;
+        auto const source = orig >>= chain;
+        source >>= target;
 
-      REQUIRE(target == std::vector{3, 7, 11});
+        REQUIRE(target == std::vector{3, 7, 11});
+      }
+      SUBCASE("string")
+      {
+        auto chain = pipes::filter([](std::string s) { return !s.empty(); }) >>=
+          pipes::transform([](std::string s) { return s + ";"; });
+
+        auto const orig = std::vector<std::string>{"1", "", "3"};
+        auto target = std::vector<std::string>{};
+
+        auto const source = orig >>= chain;
+        source >>= target;
+
+        REQUIRE(target == std::vector<std::string>{"1;", "3;"});
+      }
     }
 
     SUBCASE("prepare source without sink in multiple steps")
