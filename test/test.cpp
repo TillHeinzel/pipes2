@@ -28,7 +28,6 @@ namespace std
 
 TEST_CASE("test")
 {
-  // using namespace pipes::operators;
 
   SUBCASE("transform")
   {
@@ -250,7 +249,9 @@ TEST_CASE("test")
   }
 
   SUBCASE("discard") {
-    
+    auto const source = std::vector<int>{1, 2, 3, 4};
+
+    source >>= pipes::discard();
   }
   SUBCASE("drop n") {}
   SUBCASE("drop until") {}

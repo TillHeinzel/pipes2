@@ -14,7 +14,7 @@ namespace pipes::detail
     FinalSink finalSink;
     RawNodes<Ops...> ops;
   };
-} // namespace pipes
+} // namespace pipes::detail
 
 namespace pipes::detail
 {
@@ -43,8 +43,10 @@ namespace pipes::detail
     {
     }
 
+    Source(Root root) : root(root), ops() {}
+
     Root root;
     RawNodes<Ops...> ops;
   };
 
-} // namespace pipes
+} // namespace pipes::detail

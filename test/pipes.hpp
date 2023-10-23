@@ -40,3 +40,5 @@ namespace pipes::detail
 
 #include "Filter.hpp"
 #include "Transform.hpp"
+
+#include "Discard.hpp"
