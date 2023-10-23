@@ -1,13 +1,13 @@
 #include "pipes.hpp"
 
-#include <vector>
 #include <string>
+#include <vector>
 
-void f() 
+void f()
 {
-  auto const source = std::vector<int>{};
+  auto const source = std::vector<int>{0};
 
   auto target = std::vector<int>{};
 
-  source >>= pipes::transform([](std::string s) { return 0; });
+  source >>= pipes::transform([](std::string s) -> int { return 0; });
 }

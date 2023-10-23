@@ -2,6 +2,9 @@
 
 namespace pipes
 {
+  template<typename O, class Next, class T>
+  concept Operation = requires(O op, Next& next, T t) { op.push(next, t); };
+
   template<class Op, class Next>
   struct Node
   {
@@ -10,7 +13,12 @@ namespace pipes
     Op op;
     Next next;
 
-    void push(int i) { op.push(next, i); }
+    template<class T>
+      requires(Operation<Op, Next, T>)
+    void push(T t)
+    {
+      op.push(next, t);
+    }
   };
 
   template<class... Ops>
@@ -30,14 +38,52 @@ namespace pipes
 
   template<typename T>
   concept OpenSink = requires(T) { T::isOpenSink; };
+
+  struct DiscardSink
+  {
+    static constexpr bool isOpenSink = true;
+
+    void push(auto i) {}
+  };
 } // namespace pipes
 
 namespace pipes
 {
-  auto addBefore(OpenSink auto s) { return s; }
+  template<typename T>
+  concept RootSource = requires(T) { T::isRootSource; };
+
+  template<typename T, typename Ops>
+  concept ValidSource =
+    Sink<decltype(addBefore(DiscardSink{}, std::declval<Ops>())), int>;
+  ;
+
+  template<RootSource Root, class... Ops>
+  struct Source
+  {
+    Source(Root root, RawNodes<Ops...> ops)
+      requires(ValidSource<Root, RawNodes<Ops...>>)
+      : root(root), ops(ops)
+    {
+    }
+
+    Root root;
+    RawNodes<Ops...> ops;
+  };
+
+  // todo: generalize Sources to include others than just vectors
+  //  todo: put in checks, so that ops are required to be able to be called with
+  //  output of root. Can use a dummy-Sink to see if it works out somehow?
+  // todo: take in temporaries as valid sources, not just const&
+
+} // namespace pipes
+
+namespace pipes
+{
+  auto addBefore(OpenSink auto s) -> decltype(s) { return s; }
 
   template<class Op, class... Ops>
   auto addBefore(OpenSink auto s, Op op, Ops... ops)
+    -> decltype(addBefore(Node{op, s}, ops...))
   {
     return addBefore(Node{op, s}, ops...);
   }
@@ -54,31 +100,12 @@ namespace pipes
   {
     return RawNodes{std::tuple_cat(ops2.ops, ops1.ops)};
   }
-} // namespace pipes
-
-namespace pipes
-{
-  template<typename T>
-  concept RootSource = requires(T) { T::isRootSource; };
-
-  template<RootSource Root, class... Ops>
-  struct Source
-  {
-    Root root;
-    RawNodes<Ops...> ops;
-  };
 
   template<class... LaterOps, class... EarlierOps>
   auto addBefore(RawNodes<LaterOps...> laterOps, Source<EarlierOps...> source)
   {
     return Source{source.root, addBefore(laterOps, source.ops)};
   }
-
-  // todo: generalize Sources to include others than just vectors
-  //  todo: put in checks, so that ops are required to be able to be called with
-  //  output of root. Can use a dummy-Sink to see if it works out somehow?
-  // todo: take in temporaries as valid sources, not just const&
-
 } // namespace pipes
 
 namespace pipes
@@ -87,6 +114,11 @@ namespace pipes
   void finish(Source<Ops...> source, Sink<int> auto sink)
   {
     source.root.push(addBefore(sink, source.ops));
+  }  
+  
+  template<class... Ops>
+  void finish(Source<Ops...> source, Sink<std::string> auto sink)
+  {
+    source.root.push(addBefore(sink, source.ops));
   }
 } // namespace pipes
-

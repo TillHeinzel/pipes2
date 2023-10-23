@@ -9,9 +9,10 @@ namespace pipes
   {
     F f;
 
-    void push(Sink<std::invoke_result_t<F, int>> auto& next, int i)
+    template<class T>
+    void push(Sink<std::invoke_result_t<F, T>> auto& next, T t)
     {
-      next.push(f(i));
+      next.push(f(t));
     }
   };
 

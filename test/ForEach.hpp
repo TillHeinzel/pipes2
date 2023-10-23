@@ -6,19 +6,21 @@
 
 namespace pipes
 {
+  template<class T>
   struct ForEachSource
   {
     static constexpr bool isRootSource = true;
 
-    std::vector<int> const& v;
+    std::vector<T> const& v;
 
-    void push(Sink<int> auto sink)
+    void push(Sink<T> auto sink)
     {
-      for(const int i : v) { sink.push(i); }
+      for(T const& t : v) { sink.push(t); }
     }
   };
 
-  auto forEach(const std::vector<int>& v)
+  template<class T>
+  auto forEach(const std::vector<T>& v)
   {
     return Source{ForEachSource{v}, {}};
   }

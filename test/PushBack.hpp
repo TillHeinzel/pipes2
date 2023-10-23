@@ -6,12 +6,16 @@
 
 namespace pipes
 {
+  template<class T>
   struct PushBackSink
   {
     static constexpr bool isOpenSink = true;
 
-    std::vector<int>& v;
+    std::vector<T>& v;
 
-    void push(int i) { v.push_back(i); }
+    void push(T t) { v.push_back(t); }
   };
-}
+
+  template<class T>
+  PushBackSink<T> push_back(std::vector<T>& v) { return {v}; }
+} // namespace pipes

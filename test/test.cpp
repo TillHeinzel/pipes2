@@ -8,7 +8,8 @@
 
 namespace std
 {
-  std::ostream& operator<<(std::ostream& stream, const std::vector<int>& v)
+  template<class T>
+  std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
   {
     stream << "{";
     if(!v.empty())
@@ -88,6 +89,20 @@ TEST_CASE("test")
         pipes::transform([](int i) { return i + 1; }) >>= target;
 
       REQUIRE(target == std::vector{3, 5, 7, 9, 11});
+    }
+
+    SUBCASE("string")
+    {
+      auto const source = std::vector<std::string>{"1", "2", "3"};
+
+      auto target = std::vector<std::string>{};
+
+      auto intermediate =
+        pipes::transform([](std::string s) { return s + ";"; }) >>= target;
+
+      source >>= intermediate;
+
+       REQUIRE(target == std::vector<std::string>{"1;", "2;", "3;"});
     }
   }
 
@@ -221,4 +236,35 @@ TEST_CASE("test")
   // todo: sources without sinks
   // different operators, including <<= >>= << >>
   // additional pipes: reduce, flatten,
+}
+
+TEST_CASE("Sink and ValidSource concepts")
+{
+  SUBCASE("int")
+  {
+    auto t = pipes::transform([](int i) { return 2 * i; });
+    static_assert(!pipes::Sink<decltype(t), int>);
+
+    auto sink = t >>= pipes::DiscardSink{};
+    static_assert(pipes::Sink<decltype(sink), int>);
+    static_assert(!pipes::Sink<decltype(sink), std::string>);
+  }
+
+  SUBCASE("string")
+  {
+    auto t = pipes::transform([](std::string) -> int { return 0; });
+    static_assert(!pipes::Sink<decltype(t), int>);
+    static_assert(!pipes::Sink<decltype(t), std::string>);
+
+    auto sink = t >>= pipes::DiscardSink{};
+    static_assert(pipes::Sink<decltype(sink), std::string>);
+    static_assert(!pipes::Sink<decltype(sink), int>);
+
+    auto sink2 = pipes::addBefore(pipes::DiscardSink{}, t);
+    static_assert(pipes::Sink<decltype(sink2), std::string>);
+    static_assert(!pipes::Sink<decltype(sink2), int>);
+
+    auto source = std::vector<int>{0};
+    static_assert(!pipes::ValidSource<decltype(source), decltype(t)>);
+  }
 }
