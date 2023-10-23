@@ -10,54 +10,38 @@ namespace pipes
 {
   template<class... Op1, class... Op2>
   auto operator>>=(RawNodes<Op1...> n1, RawNodes<Op2...> n2)
-  {
-    return addBefore(n2, n1);
-  }
+    PIPES_FWD(addBefore(n2, n1));
 
   template<class... Ops>
   auto operator>>=(RawNodes<Ops...> n, OpenSink auto s)
-  {
-    return addBefore(s, n);
-  }
+    PIPES_FWD(addBefore(s, n));
 } // namespace pipes
 
 namespace pipes
 {
   template<class... Ops>
-  void operator>>=(Source<Ops...> source, Sink<int> auto sink)
-  {
-    finish(source, sink);
-  }
-
-  template<class... Ops>
-  void operator>>=(Source<Ops...> source, Sink<std::string> auto sink)
-  {
-    finish(source, sink);
-  }
+  auto operator>>=(Source<Ops...> source, auto sink)
+    PIPES_FWD(finish(source, sink));
 
   template<class... Ops1, class... Ops2>
   auto operator>>=(Source<Ops1...> source, RawNodes<Ops2...> ops)
-  {
-    return addBefore(ops, source);
-  }
+    PIPES_FWD(addBefore(ops, source));
 } // namespace pipes
 
-#include "PushBack.hpp"
 #include "ForEach.hpp"
+#include "PushBack.hpp"
 
 namespace pipes
 {
-  template<class... Ops>
-  auto operator>>=(std::vector<int> const& v, RawNodes<Ops...> n)
+  template<class T>
+  void operator>>=(std::vector<T> const& v, Sink<T> auto sink)
   {
-    return forEach(v) >>= n;
+    forEach(v) >>= sink;
   }
 
   template<class T>
-  void operator>>=(std::vector<T> const& source, Sink<T> auto sink)
-  {
-    forEach(source) >>= sink;
-  }
+  auto operator>>=(std::vector<T> const& v, auto n)
+    PIPES_FWD(forEach(v) >>= n);
 
   template<class... Ops>
   void operator>>=(Source<Ops...> source, std::vector<int>& v)

@@ -1,5 +1,8 @@
 #pragma once
 
+#define PIPES_FWD(X)                                                           \
+  ->decltype(X) { return X; }
+
 namespace pipes
 {
   template<typename O, class Next, class T>
@@ -49,15 +52,17 @@ namespace pipes
 
 namespace pipes
 {
-  template<typename T>
-  concept RootSource = requires(T) { typename T::OutputType; };
+  template<typename S>
+  concept RootSource = requires(S) { typename S::OutputType; };
 
-  template<typename T, typename Ops>
+
+
+  template<typename S, typename Ops>
   concept ValidSource =
-    RootSource<T> &&
+    RootSource<S> &&
     Sink<decltype(addBefore(DiscardSink{}, std::declval<Ops>())),
-         typename T::OutputType>;
-  
+         typename S::OutputType>;
+
   template<RootSource Root, class... Ops>
   struct Source
   {
@@ -66,7 +71,6 @@ namespace pipes
       : root(root), ops(ops)
     {
     }
-
 
     Root root;
     RawNodes<Ops...> ops;
@@ -113,14 +117,6 @@ namespace pipes
 namespace pipes
 {
   template<class... Ops>
-  void finish(Source<Ops...> source, Sink<int> auto sink)
-  {
-    source.root.push(addBefore(sink, source.ops));
-  }
-
-  template<class... Ops>
-  void finish(Source<Ops...> source, Sink<std::string> auto sink)
-  {
-    source.root.push(addBefore(sink, source.ops));
-  }
+  auto finish(Source<Ops...> source, auto sink)
+    PIPES_FWD(source.root.push(addBefore(sink, source.ops)));
 } // namespace pipes
