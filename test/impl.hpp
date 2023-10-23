@@ -1,7 +1,7 @@
 #pragma once
 
-#define PIPES_FWD(X)                                                           \
-  ->decltype(X) { return X; }
+#define PIPES_FWD(...)                                                           \
+  ->decltype(__VA_ARGS__) { return __VA_ARGS__; }
 
 namespace pipes
 {
@@ -88,19 +88,16 @@ namespace pipes
 
 namespace pipes
 {
-  auto addBefore(OpenSink auto s) -> decltype(s) { return s; }
+  auto prepend(OpenSink auto s) -> decltype(s) { return s; }
 
   template<class Op, class... Ops>
-  auto addBefore(OpenSink auto s, Op op, Ops... ops)
-    -> decltype(addBefore(Node{op, s}, ops...))
-  {
-    return addBefore(Node{op, s}, ops...);
-  }
+  auto prepend(OpenSink auto s, Op op, Ops... ops)
+    PIPES_FWD(prepend(Node{op, s}, ops...));
 
   template<class... Ops>
   auto addBefore(OpenSink auto s, RawNodes<Ops...> ops)
   {
-    auto f = [&](auto... n) { return addBefore(s, n...); };
+    auto f = [&](auto... n) { return prepend(s, n...); };
     return std::apply(f, ops.ops);
   }
 
@@ -115,11 +112,18 @@ namespace pipes
   {
     return Source{source.root, addBefore(laterOps, source.ops)};
   }
+
+  template<class... Ops>
+  auto addBefore(auto sink, Source<Ops...> source)
+    PIPES_FWD(source.root.push(addBefore(sink, source.ops)));
+
+  template<class T1, class T2>
+  auto append(T1 t1, T2 t2) PIPES_FWD(addBefore(t2, t1));
 } // namespace pipes
 
 namespace pipes
 {
   template<class... Ops>
   auto finish(Source<Ops...> source, auto sink)
-    PIPES_FWD(source.root.push(addBefore(sink, source.ops)));
+    PIPES_FWD(addBefore(sink, source));
 } // namespace pipes

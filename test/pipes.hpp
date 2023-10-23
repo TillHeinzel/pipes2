@@ -10,22 +10,26 @@ namespace pipes
 {
   template<class... Op1, class... Op2>
   auto operator>>=(RawNodes<Op1...> n1, RawNodes<Op2...> n2)
-    PIPES_FWD(addBefore(n2, n1));
+    PIPES_FWD(append(n1, n2));
 
   template<class... Ops>
   auto operator>>=(RawNodes<Ops...> n, OpenSink auto s)
-    PIPES_FWD(addBefore(s, n));
+    PIPES_FWD(append(n, s));
 } // namespace pipes
 
 namespace pipes
 {
   template<class... Ops>
-  auto operator>>=(Source<Ops...> source, auto sink)
-    PIPES_FWD(finish(source, sink));
+  auto operator>>=(Source<Ops...> source, OpenSink auto sink)
+    PIPES_FWD(append(source, sink));
 
   template<class... Ops1, class... Ops2>
   auto operator>>=(Source<Ops1...> source, RawNodes<Ops2...> ops)
-    PIPES_FWD(addBefore(ops, source));
+    PIPES_FWD(append(source, ops));
+
+  
+  //auto operator>>=(auto source, auto sink)
+  //  PIPES_FWD(append(source, sink));
 } // namespace pipes
 
 #include "ForEach.hpp"
