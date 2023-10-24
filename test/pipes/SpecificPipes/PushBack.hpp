@@ -17,6 +17,6 @@ namespace pipes::detail
   namespace api
   {
     template<class T>
-    auto push_back(std::vector<T>& v) PIPES_FWD(Sink{PushBackSink{v}});
+    auto push_back(std::vector<T>& v) PIPES_RETURN(Sink{PushBackSink{v}});
   } // namespace api
 } // namespace pipes::detail

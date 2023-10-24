@@ -31,7 +31,7 @@ namespace pipes::detail
 
   template<class Op, class... Ops>
   auto connect_links_impl(auto s, Op op, Ops... ops)
-    PIPES_FWD(connect_links_impl(Node{op, s}, ops...));
+    PIPES_RETURN(connect_links_impl(Node{op, s}, ops...));
 
   auto connect_links_f(auto s)
   {
@@ -40,5 +40,5 @@ namespace pipes::detail
 
   template<class... Ops>
   auto connect_links(RawNodes<Ops...> ops, auto s)
-    PIPES_FWD(std::apply(connect_links_f(s), reverse(ops.ops)));
+    PIPES_RETURN(std::apply(connect_links_f(s), reverse(ops.ops)));
 } // namespace pipes::detail

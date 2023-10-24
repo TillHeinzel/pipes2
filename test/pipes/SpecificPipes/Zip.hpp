@@ -64,6 +64,6 @@ namespace pipes::detail
   {
     template<class... Ts>
     auto zip(std::vector<Ts> const&... vs)
-      PIPES_FWD(Source{Zip{std::tie(vs...)}});
+      PIPES_RETURN(Source{Zip{std::tie(vs...)}});
   } // namespace api
 } // namespace pipes::detail

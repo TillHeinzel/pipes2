@@ -19,6 +19,6 @@ namespace pipes::detail
   namespace api
   {
     template<typename F>
-    auto filter(F f) PIPES_FWD(RawNodes{Filter{f}});
+    auto filter(F f) PIPES_RETURN(RawNodes{Filter{f}});
   } // namespace api
 } // namespace pipes::detail

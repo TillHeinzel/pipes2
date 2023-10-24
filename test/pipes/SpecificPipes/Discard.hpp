@@ -11,6 +11,6 @@ namespace pipes::detail
 
   namespace api
   {
-    auto discard() PIPES_FWD(Sink{Discard{}});
+    auto discard() PIPES_RETURN(Sink{Discard{}});
   } // namespace api
 } // namespace pipes::detail
