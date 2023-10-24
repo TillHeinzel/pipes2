@@ -4,26 +4,16 @@
 #include <tuple>
 #include <vector>
 
-#include "forUI.hpp"
+#include "Utility/RETURN.hpp"
+#include "Utility/FWD.hpp"
 
-#include "SpecificPipes/ForEach.hpp"
-#include "SpecificPipes/PushBack.hpp"
+#include "forUI.hpp"
 
 namespace pipes::detail
 {
-  auto operator>>=(auto source, auto sink) PIPES_RETURN(append(source, sink));
-
-  template<class T>
-  auto operator>>=(std::vector<T> const& v, ValidReceiverFor<T> auto n)
-    PIPES_RETURN(api::forEach(v) >>= n);
-
-  template<class T, class... Ops>
-  auto operator>>=(Source<Ops...> source, std::vector<T>& v)
-    PIPES_RETURN(source >>= api::push_back(v));
-
-  template<class T, class... Ops>
-  auto operator>>=(RawNodes<Ops...> n, std::vector<T>& v)
+  template<class Source, class Sink>
+  auto operator>>=(Source&& source, Sink&& sink)
   {
-    return n >>= api::push_back(v);
+    return link(PIPES_FWD(source), PIPES_FWD(sink));
   }
-} // namespace pipes::detail
+}

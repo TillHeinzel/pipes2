@@ -16,19 +16,19 @@ namespace pipes::detail
 namespace pipes::detail
 {
   template<class... Ops1, class... Ops2>
-  auto append(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
+  auto link(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
     PIPES_RETURN(ops1 + ops2);
 
   template<class... Ts, class... Ops>
-  auto append(Source<Ts...> source, RawNodes<Ops...> laterOps)
+  auto link(Source<Ts...> source, RawNodes<Ops...> laterOps)
     PIPES_RETURN(Source{source.root, source.ops + laterOps});
 
   template<class... Ops, class... Ts>
-  auto append(RawNodes<Ops...> earlierOps, Sink<Ts...> sink)
+  auto link(RawNodes<Ops...> earlierOps, Sink<Ts...> sink)
     PIPES_RETURN(Sink{sink.finalSink, earlierOps + sink.ops});
 
   template<class... T1s, class... T2s>
-  auto append(Source<T1s...> source, Sink<T2s...> sink)
+  auto link(Source<T1s...> source, Sink<T2s...> sink)
     PIPES_RETURN(finish(source.root, source.ops + sink.ops, sink.finalSink));
 } // namespace pipes
 
@@ -42,3 +42,21 @@ namespace pipes::detail
   template<typename X, typename T>
   concept ValidReceiverFor = ValidChainFor<X, T> || ValidSink<X, T>;
 } // namespace pipes
+
+#include "SpecificPipes/ForEach.hpp"
+#include "SpecificPipes/PushBack.hpp"
+
+namespace pipes::detail
+{
+  template<class T>
+  auto link(std::vector<T> const& v, ValidReceiverFor<T> auto n)
+    PIPES_RETURN(link(api::forEach(v), n));
+
+  template<class T, class... Ops>
+  auto link(Source<Ops...> source, std::vector<T>& v)
+    PIPES_RETURN(link(source , api::push_back(v)));
+
+  template<class T, class... Ops>
+  auto link(RawNodes<Ops...> n, std::vector<T>& v)
+    PIPES_RETURN(link(n, api::push_back(v)));
+}
