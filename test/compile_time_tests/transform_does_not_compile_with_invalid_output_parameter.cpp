@@ -1,4 +1,4 @@
-#include "pipes.hpp"
+#include "pipes/pipes.hpp"
 
 #include <vector>
 #include <string>

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "pipes.hpp"
+#include "pipes/pipes.hpp"
 
 template<typename T>
 concept Streamable = requires(std::ostream& os, T value) {

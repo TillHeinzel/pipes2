@@ -6,8 +6,8 @@
 
 #include "forUI.hpp"
 
-#include "ForEach.hpp"
-#include "PushBack.hpp"
+#include "SpecificPipes/ForEach.hpp"
+#include "SpecificPipes/PushBack.hpp"
 
 namespace pipes::detail
 {

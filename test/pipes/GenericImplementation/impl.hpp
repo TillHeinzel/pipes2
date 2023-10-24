@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FWD.hpp"
+#include "../Utility/RETURN.hpp"
 #include "Node.hpp"
 
 namespace pipes::detail

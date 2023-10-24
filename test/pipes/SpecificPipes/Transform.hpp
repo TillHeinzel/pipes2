@@ -1,6 +1,6 @@
 #pragma once
 
-#include "impl.hpp"
+#include "../GenericImplementation/impl.hpp"
 
 namespace pipes::detail
 {

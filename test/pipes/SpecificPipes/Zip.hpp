@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "impl.hpp"
+#include "../GenericImplementation/impl.hpp"
 
 namespace pipes::detail
 {

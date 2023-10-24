@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FWD.hpp"
+#include "../Utility/RETURN.hpp"
 
 namespace pipes::detail
 {
@@ -20,10 +20,10 @@ namespace pipes::detail
       op.push(next, t);
     }
   };
-} // namespace pipes
+} // namespace pipes::detail
 
-#include "reverse.hpp"
 #include "RawNodes.hpp"
+#include "../Utility/reverse.hpp"
 
 namespace pipes::detail
 {
@@ -41,4 +41,4 @@ namespace pipes::detail
   template<class... Ops>
   auto connect_links(RawNodes<Ops...> ops, auto s)
     PIPES_FWD(std::apply(connect_links_f(s), reverse(ops.ops)));
-} // namespace pipes
+} // namespace pipes::detail
