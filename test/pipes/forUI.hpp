@@ -60,3 +60,9 @@ namespace pipes::detail
   auto link(RawNodes<Ops...> n, std::vector<T>& v)
     PIPES_RETURN(link(n, api::push_back(v)));
 }
+
+namespace pipes::detail::api
+{
+  template<class Source, class Sink>
+  concept CanLink = requires(Source source, Sink sink) { link(source, sink); };
+}

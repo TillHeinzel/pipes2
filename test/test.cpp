@@ -134,6 +134,19 @@ TEST_CASE("test")
 
       CHECK(target == std::vector<std::string>{"1;", "2;", "3;"});
     }
+
+    SUBCASE("multiple input parameters")
+    {
+      auto const source1 = std::vector<int>{1, 2, 3};
+      auto const source2 = std::vector<int>{3, 5, 7};
+
+      auto target = std::vector<int>{};
+
+      pipes::zip(source1, source2) >>=
+        pipes::transform([](int i, int j) { return i + j; }) >>= target;
+
+      CHECK(target == std::vector<int>{4, 7, 10});
+    }
   }
 
   SUBCASE("filter")
@@ -281,9 +294,48 @@ TEST_CASE("test")
 
   SUBCASE("discard")
   {
-    auto const source = std::vector<int>{1, 2, 3, 4};
+    SUBCASE("generic")
+    {
+      auto const source = std::vector<int>{1, 2, 3, 4};
 
-    source >>= pipes::discard();
+      static_assert(
+        pipes::CanLink<decltype(source), decltype(pipes::discard())>);
+    }
+
+    SUBCASE("typed")
+    {
+      using Source = std::vector<int>;
+
+      static_assert(pipes::CanLink<Source, decltype(pipes::discard<int>())>);
+
+      static_assert(
+        !pipes::CanLink<Source, decltype(pipes::discard<std::string>())>);
+    }
+
+    SUBCASE("typed with tuple")
+    {
+      using Source = std::vector<std::tuple<int, int>>;
+
+      using Sink1 = decltype(pipes::discard<std::tuple<int, int>>());
+      static_assert(pipes::CanLink<Source, Sink1>);
+
+      using Sink2 = decltype(pipes::discard<int, int>());
+      static_assert(pipes::CanLink<Source, Sink2>);
+    }
+
+    SUBCASE("typed with tuple of tuple (only unpack one level at a time!)")
+    {
+      using Source = std::vector<std::tuple<std::tuple<int>>>;
+
+      using Sink1 = decltype(pipes::discard<std::tuple<std::tuple<int>>>());
+      static_assert(pipes::CanLink<Source, Sink1>);
+
+      using Sink2 = decltype(pipes::discard<std::tuple<int>>());
+      static_assert(pipes::CanLink<Source, Sink2>);
+
+      using Sink3 = decltype(pipes::discard<int>());
+      static_assert(!pipes::CanLink<Source, Sink3>);
+    }
   }
 
   SUBCASE("drop until") {}
@@ -376,20 +428,18 @@ TEST_CASE("test")
       });
     }
 
-    SUBCASE("two sources, unpack into transform")
+    SUBCASE("unpack tuple into transform")
     {
       auto const source1 = std::vector<int>{1, 2, 3};
-      auto const source2 = std::vector<int>{3, 5, 7};
 
       auto target = std::vector<int>{};
 
-      //pipes::zip(source1, source2) 
-      // >>=
-      //  pipes::transform([](int i, int j) { return i + j; }) >>= target
-      //;
+      pipes::zip(source1) >>= pipes::transform([](int i) { return 2 * i; }) >>=
+        target;
 
-      //CHECK(target == std::vector<int>{4, 7, 10});
+      CHECK(target == std::vector<int>{2, 4, 6});
     }
+
     SUBCASE("one source, unpack into transform") {}
     SUBCASE("zero sources") {}
     SUBCASE("source with reference types") {}

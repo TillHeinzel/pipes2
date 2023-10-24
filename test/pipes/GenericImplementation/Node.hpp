@@ -13,17 +13,19 @@ namespace pipes::detail
     Op op;
     Next next;
 
+    template<class... Ts>
+    auto operator()(Ts&&... ts) PIPES_RETURN(op.push(next, PIPES_FWD(ts)...));
+
     template<class T>
-      requires(Operation<Op, Next, T>)
-    void push(T t)
-    {
-      op.push(next, t);
-    }
+    auto push(T&& t) PIPES_RETURN((*this)(PIPES_FWD(t)));
+
+    template<class... Ts>
+    auto push(std::tuple<Ts...> ts) PIPES_RETURN(std::apply(*this, ts));
   };
 } // namespace pipes::detail
 
-#include "RawNodes.hpp"
 #include "../Utility/reverse.hpp"
+#include "RawNodes.hpp"
 
 namespace pipes::detail
 {
