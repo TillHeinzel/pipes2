@@ -1,9 +1,7 @@
 
 # https://cmake.org/pipermail/cmake/2017-September/066221.html
 
-add_library(DUMMY_COMPILE_TIME_TESTS STATIC EXCLUDE_FROM_ALL 
-  "transform_does_not_compile_with_invalid_input_parameter.cpp"
-  "transform_does_not_compile_with_invalid_output_parameter.cpp"
+add_library(DUMMY_COMPILE_TIME_TESTS STATIC EXCLUDE_FROM_ALL "dummy.cpp"
 )
 
 function(create_compile_time_test NAME)
@@ -23,9 +21,9 @@ function(create_compile_time_test NAME)
     )
 endfunction()
 
-file(GLOB tests LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
+file(GLOB tests LIST_DIRECTORIES false RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.test.cpp)
 
-list(TRANSFORM tests REPLACE ".cpp" "")
+list(TRANSFORM tests REPLACE ".test.cpp" "")
 
 foreach(NAME ${tests})
   create_compile_time_test(${NAME})
