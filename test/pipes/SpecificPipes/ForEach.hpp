@@ -23,7 +23,7 @@ namespace pipes::detail
   {
     template<class T>
     auto forEach(const std::vector<T>& v)
-      PIPES_RETURN(Source{ForEachSource{v}});
+      PIPES_RETURN(SourceSection{ForEachSource{v}});
 
   } // namespace api
 } // namespace pipes::detail

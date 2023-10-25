@@ -1,21 +1,20 @@
 #pragma once
 
-
 namespace pipes::detail
 {
-  template<class... Ops>
-  struct RawNodes
+  template<class... Pieces>
+  struct Section
   {
-    RawNodes(Ops... ops) : ops(ops...) {}
-    RawNodes(std::tuple<Ops...> ops) : ops(ops) {}
+    Section(Pieces... pieces) : pieces(pieces...) {}
+    Section(std::tuple<Pieces...> pieces) : pieces(pieces) {}
 
-    std::tuple<Ops...> ops;
+    std::tuple<Pieces...> pieces;
   };
 
-  template<class... Ops1, class... Ops2>
-  RawNodes<Ops1..., Ops2...> operator+(RawNodes<Ops1...> lhs,
-                                       RawNodes<Ops2...> rhs)
+  template<class... T1s, class... T2s>
+  Section<T1s..., T2s...> operator+(Section<T1s...> lhs,
+                                      Section<T2s...> rhs)
   {
-    return RawNodes{std::tuple_cat(lhs.ops, rhs.ops)};
+    return Section{std::tuple_cat(lhs.pieces, rhs.pieces)};
   }
-} // namespace pipes
+} // namespace pipes::detail

@@ -8,7 +8,7 @@ namespace pipes::detail
   concept Operation = requires(O op, Next& next, T... t) { op.push(next, t...); };
 
   template<class Op, class Next>
-  struct Node
+  struct FlowSection
   {
     Op op;
     Next next;
@@ -34,18 +34,18 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  auto connect_links_impl(auto s) -> decltype(s) { return s; }
+  auto connect_to_sink_impl(auto s) -> decltype(s) { return s; }
 
-  template<class Op, class... Ops>
-  auto connect_links_impl(auto s, Op op, Ops... ops)
-    PIPES_RETURN(connect_links_impl(Node{op, s}, ops...));
+  template<class Piece, class... Pieces>
+  auto connect_to_sink_impl(auto s, Piece piece, Pieces... pieces)
+    PIPES_RETURN(connect_to_sink_impl(FlowSection{piece, s}, pieces...));
 
-  auto connect_links_f(auto s)
+  auto connect_to_sink_f(auto s)
   {
-    return [s](auto... n) { return connect_links_impl(s, n...); };
+    return [s](auto... n) { return connect_to_sink_impl(s, n...); };
   }
 
-  template<class... Ops>
-  auto connect_links(RawNodes<Ops...> ops, auto s)
-    PIPES_RETURN(std::apply(connect_links_f(s), reverse(ops.ops)));
+  template<class... Pieces>
+  auto connect_to_sink(Section<Pieces...> pipe, auto sink)
+    PIPES_RETURN(std::apply(connect_to_sink_f(sink), reverse(pipe.pieces)));
 } // namespace pipes::detail

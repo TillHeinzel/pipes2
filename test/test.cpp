@@ -369,37 +369,37 @@ TEST_CASE("test")
 
     SUBCASE("typed")
     {
-      using Source = std::vector<int>;
+      using SourceSection = std::vector<int>;
 
-      static_assert(pipes::CanLink<Source, decltype(pipes::discard<int>())>);
+      static_assert(pipes::CanLink<SourceSection, decltype(pipes::discard<int>())>);
 
       static_assert(
-        !pipes::CanLink<Source, decltype(pipes::discard<std::string>())>);
+        !pipes::CanLink<SourceSection, decltype(pipes::discard<std::string>())>);
     }
 
     SUBCASE("typed with tuple")
     {
-      using Source = std::vector<std::tuple<int, int>>;
+      using SourceSection = std::vector<std::tuple<int, int>>;
 
       using Sink1 = decltype(pipes::discard<std::tuple<int, int>>());
-      static_assert(pipes::CanLink<Source, Sink1>);
+      static_assert(pipes::CanLink<SourceSection, Sink1>);
 
       using Sink2 = decltype(pipes::discard<int, int>());
-      static_assert(pipes::CanLink<Source, Sink2>);
+      static_assert(pipes::CanLink<SourceSection, Sink2>);
     }
 
     SUBCASE("typed with tuple of tuple (only unpack one level at a time!)")
     {
-      using Source = std::vector<std::tuple<std::tuple<int>>>;
+      using SourceSection = std::vector<std::tuple<std::tuple<int>>>;
 
       using Sink1 = decltype(pipes::discard<std::tuple<std::tuple<int>>>());
-      static_assert(pipes::CanLink<Source, Sink1>);
+      static_assert(pipes::CanLink<SourceSection, Sink1>);
 
       using Sink2 = decltype(pipes::discard<std::tuple<int>>());
-      static_assert(pipes::CanLink<Source, Sink2>);
+      static_assert(pipes::CanLink<SourceSection, Sink2>);
 
       using Sink3 = decltype(pipes::discard<int>());
-      static_assert(!pipes::CanLink<Source, Sink3>);
+      static_assert(!pipes::CanLink<SourceSection, Sink3>);
     }
   }
 

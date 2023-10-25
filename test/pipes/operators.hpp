@@ -11,8 +11,8 @@
 
 namespace pipes::detail
 {
-  template<class Source, class Sink>
-  auto operator>>=(Source&& source, Sink&& sink)
+  template<class SourceSection, class SinkSection>
+  auto operator>>=(SourceSection&& source, SinkSection&& sink)
   {
     return link(PIPES_FWD(source), PIPES_FWD(sink));
   }

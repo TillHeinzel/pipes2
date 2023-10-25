@@ -4,37 +4,37 @@
 
 namespace pipes::detail
 {
-  template<RootSource S>
+  template<Source S>
   auto finish_impl(S source, SinkFor<typename S::OutputType> auto sink)
     PIPES_RETURN(source.push(sink));
 
   template<class... Ops>
-  auto finish(RootSource auto source, RawNodes<Ops...> ops, auto finalSink)
-    PIPES_RETURN(finish_impl(source, connect_links(ops, finalSink)))
+  auto finish(Source auto source, Section<Ops...> ops, auto finalSink)
+    PIPES_RETURN(finish_impl(source, connect_to_sink(ops, finalSink)))
 } // namespace pipes
 
 namespace pipes::detail
 {
   template<class... Ops1, class... Ops2>
-  auto link(RawNodes<Ops1...> ops1, RawNodes<Ops2...> ops2)
+  auto link(Section<Ops1...> ops1, Section<Ops2...> ops2)
     PIPES_RETURN(ops1 + ops2);
 
   template<class... Ts, class... Ops>
-  auto link(Source<Ts...> source, RawNodes<Ops...> laterOps)
-    PIPES_RETURN(Source{source.root, source.ops + laterOps});
+  auto link(SourceSection<Ts...> source, Section<Ops...> laterOps)
+    PIPES_RETURN(SourceSection{source.root, source.ops + laterOps});
 
   template<class... Ops, class... Ts>
-  auto link(RawNodes<Ops...> earlierOps, Sink<Ts...> sink)
-    PIPES_RETURN(Sink{sink.finalSink, earlierOps + sink.ops});
+  auto link(Section<Ops...> earlierOps, SinkSection<Ts...> sink)
+    PIPES_RETURN(SinkSection{sink.finalSink, earlierOps + sink.ops});
 
   template<class... T1s, class... T2s>
-  auto link(Source<T1s...> source, Sink<T2s...> sink)
+  auto link(SourceSection<T1s...> source, SinkSection<T2s...> sink)
     PIPES_RETURN(finish(source.root, source.ops + sink.ops, sink.finalSink));
 } // namespace pipes
 
 namespace pipes::detail
 {
-  auto collapse(auto const& s) PIPES_RETURN(connect_links(s.ops, s.finalSink));
+  auto collapse(auto const& s) PIPES_RETURN(connect_to_sink(s.ops, s.finalSink));
 
   template<class S, class T>
   concept ValidSink = SinkFor<decltype(collapse(std::declval<S>())), T>;
@@ -53,16 +53,16 @@ namespace pipes::detail
     PIPES_RETURN(link(api::forEach(v), n));
 
   template<class T, class... Ops>
-  auto link(Source<Ops...> source, std::vector<T>& v)
+  auto link(SourceSection<Ops...> source, std::vector<T>& v)
     PIPES_RETURN(link(source , api::push_back(v)));
 
   template<class T, class... Ops>
-  auto link(RawNodes<Ops...> n, std::vector<T>& v)
+  auto link(Section<Ops...> n, std::vector<T>& v)
     PIPES_RETURN(link(n, api::push_back(v)));
 }
 
 namespace pipes::detail::api
 {
-  template<class Source, class Sink>
-  concept CanLink = requires(Source source, Sink sink) { link(source, sink); };
+  template<class SourceSection, class SinkSection>
+  concept CanLink = requires(SourceSection source, SinkSection sink) { link(source, sink); };
 }
