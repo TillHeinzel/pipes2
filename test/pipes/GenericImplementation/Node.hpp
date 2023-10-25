@@ -37,8 +37,8 @@ namespace pipes::detail
   auto connect_to_sink_impl(auto s) -> decltype(s) { return s; }
 
   template<class Piece, class... Pieces>
-  auto connect_to_sink_impl(auto s, Piece piece, Pieces... pieces)
-    PIPES_RETURN(connect_to_sink_impl(FlowSection{piece, s}, pieces...));
+  auto connect_to_sink_impl(auto sink, Piece piece, Pieces... pieces)
+    PIPES_RETURN(connect_to_sink_impl(FlowSection{piece, sink}, pieces...));
 
   auto connect_to_sink_f(auto s)
   {

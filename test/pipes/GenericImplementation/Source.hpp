@@ -25,18 +25,11 @@ namespace pipes::detail
   template<typename S, typename Ops>
   concept ValidSource = Source<S> && ValidChainFor<Ops, typename S::OutputType>;
 
-  template<Source Root, class... Ops>
+  template<class Source_, class... Ops>
+    requires(ValidSource<Source_, Section<Ops...>>)
   struct SourceSection
   {
-    SourceSection(Root source, Section<Ops...> ops)
-      requires(ValidSource<Root, Section<Ops...>>)
-      : source(source), ops(ops)
-    {
-    }
-
-    SourceSection(Root source) : root(source), ops() {}
-
-    Root source;
+    Source_ source;
     Section<Ops...> ops;
   };
 

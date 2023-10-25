@@ -16,6 +16,6 @@ namespace pipes::detail
   namespace api
   {
     template<typename F>
-    auto filter(F f) PIPES_RETURN(Section{Filter{f}});
+    auto filter(F f) PIPES_RETURN(pipe(Filter{f}));
   } // namespace api
 } // namespace pipes::detail

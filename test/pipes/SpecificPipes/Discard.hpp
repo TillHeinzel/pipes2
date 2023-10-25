@@ -17,9 +17,9 @@ namespace pipes::detail
 
   namespace api
   {
-    auto discard() PIPES_RETURN(SinkSection{Discard{}});
+    auto discard() PIPES_RETURN(sink(Discard{}));
 
     template<class... T>
-    auto discard() PIPES_RETURN(SinkSection{TypedDiscard<T...>{}});
+    auto discard() PIPES_RETURN(sink(TypedDiscard<T...>{}));
   } // namespace api
 } // namespace pipes::detail

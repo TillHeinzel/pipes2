@@ -9,12 +9,13 @@ namespace pipes::detail
   {
     F f;
 
-    auto push(auto& next, auto&&... ts) PIPES_RETURN(next.push(f(PIPES_FWD(ts)...)));
+    auto push(auto& next, auto&&... ts)
+      PIPES_RETURN(next.push(f(PIPES_FWD(ts)...)));
   };
 
   namespace api
   {
     template<typename F>
-    auto transform(F f) PIPES_RETURN(Section{Transform{f}})
+    auto transform(F f) PIPES_RETURN(pipe(Transform{f}))
   } // namespace api
 } // namespace pipes::detail

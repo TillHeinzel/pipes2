@@ -21,7 +21,7 @@ namespace pipes::detail
 
   template<class... Ts, class... Ops>
   auto link(SourceSection<Ts...> source, Section<Ops...> laterOps)
-    PIPES_RETURN(SourceSection{source.root, source.ops + laterOps});
+    PIPES_RETURN(SourceSection{source.source, source.ops + laterOps});
 
   template<class... Ops, class... Ts>
   auto link(Section<Ops...> earlierOps, SinkSection<Ts...> sink)
@@ -29,7 +29,7 @@ namespace pipes::detail
 
   template<class... T1s, class... T2s>
   auto link(SourceSection<T1s...> source, SinkSection<T2s...> sink)
-    PIPES_RETURN(finish(source.root, source.ops + sink.ops, sink.finalSink));
+    PIPES_RETURN(finish(source.source, source.ops + sink.ops, sink.finalSink));
 } // namespace pipes
 
 namespace pipes::detail
