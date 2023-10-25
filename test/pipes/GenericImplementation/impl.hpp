@@ -9,8 +9,8 @@
 
 namespace pipes::detail
 {
-  template<typename T, class I>
-  concept SinkFor = requires(T t, I i) { t.push(i); };
+  template<typename S, class... T>
+  concept SinkFor = requires(S s, T... t) { s.push(t...); };
 
   template<class S>
   struct EndPiece
@@ -18,10 +18,16 @@ namespace pipes::detail
     S actualSink;
 
     template<class... Ts>
+      requires(SinkFor<S, Ts...>)
     auto operator()(Ts&&... ts) PIPES_RETURN(actualSink.push(PIPES_FWD(ts)...));
 
-    template<class Ts>
-    auto push(Ts&& ts) PIPES_RETURN((*this)(PIPES_FWD(ts)));
+    template<class... Ts>
+      requires(!SinkFor<S, Ts...>)
+    auto operator()(Ts&&... ts)
+      PIPES_RETURN(actualSink.push(std::tuple{PIPES_FWD(ts)...}));
+
+    template<class... Ts>
+    auto push(Ts&&... ts) PIPES_RETURN((*this)(PIPES_FWD(ts)...));
 
     // no recursive reference here, to avoid issues with tuples of tuples being
     // unpacked
@@ -58,7 +64,7 @@ namespace pipes::detail
 
   struct DummySink
   {
-    void push(auto const&) {}
+    void push(auto const&...) {}
   };
 
   template<typename Chain, typename T>

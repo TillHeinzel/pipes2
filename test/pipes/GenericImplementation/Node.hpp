@@ -4,8 +4,8 @@
 
 namespace pipes::detail
 {
-  template<typename O, class Next, class T>
-  concept Operation = requires(O op, Next& next, T t) { op.push(next, t); };
+  template<typename O, class Next, class... T>
+  concept Operation = requires(O op, Next& next, T... t) { op.push(next, t...); };
 
   template<class Op, class Next>
   struct Node
@@ -14,10 +14,15 @@ namespace pipes::detail
     Next next;
 
     template<class... Ts>
+      //requires(Operation<Op, Next, Ts...>)
     auto operator()(Ts&&... ts) PIPES_RETURN(op.push(next, PIPES_FWD(ts)...));
 
-    template<class T>
-    auto push(T&& t) PIPES_RETURN((*this)(PIPES_FWD(t)));
+    //template<class... Ts>
+    //  requires(!Operation<Op, Next, Ts...>)
+    //auto operator()(Ts&&... ts) PIPES_RETURN(op.push(next, PIPES_FWD(ts)...));
+
+    template<class... Ts>
+    auto push(Ts&&... ts) PIPES_RETURN((*this)(PIPES_FWD(ts)...));
 
     template<class... Ts>
     auto push(std::tuple<Ts...> ts) PIPES_RETURN(std::apply(*this, ts));

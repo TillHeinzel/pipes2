@@ -183,6 +183,22 @@ TEST_CASE("test")
 
       CHECK(target == std::vector{1, 3, 5});
     }
+
+    SUBCASE("multiple input parameters")
+    {
+      auto const source1 = std::vector<int>{1, 2, 3, 6};
+      auto const source2 = std::vector<int>{3, 2, 7, 6};
+
+      auto target = std::vector<std::tuple<int, int>>{};
+
+      pipes::zip(source1, source2) >>=
+        pipes::filter([](int i, int j) { return i == j; }) >>= target;
+
+      CHECK(target == std::vector<std::tuple<int, int>>{
+                        {2, 2},
+                        {6, 6}
+      });
+    }
   }
 
   SUBCASE("chained operations")
@@ -290,6 +306,55 @@ TEST_CASE("test")
 
       CHECK(target == std::vector{3, 7, 11});
     }
+
+    SUBCASE("prepare multi-parameter source without sink")
+    {
+      auto const source1 = std::vector<int>{1, 2, 3, 6};
+      auto const source2 = std::vector<int>{3, 2, 7, 6};
+
+      auto target = std::vector<std::tuple<int, int>>{};
+
+      auto source = pipes::zip(source1, source2) >>=
+        pipes::filter([](int i, int j) { return i == j; });
+
+      source >>= target;
+
+      CHECK(target == std::vector<std::tuple<int, int>>{
+                        {2, 2},
+                        {6, 6}
+      });
+    }
+
+    SUBCASE("prepare multi-parameter sink without source")
+    {
+      auto const source1 = std::vector<int>{1, 2, 3, 6};
+      auto const source2 = std::vector<int>{3, 2, 7, 6};
+
+      auto target = std::vector<std::tuple<int, int>>{};
+
+      auto sink = pipes::filter([](int i, int j) { return i == j; }) >>= target;
+
+      pipes::zip(source1, source2) >>= sink;
+
+      CHECK(target == std::vector<std::tuple<int, int>>{
+                        {2, 2},
+                        {6, 6}
+      });
+    }
+
+    SUBCASE("zip filter transform")
+    {
+      auto const source1 = std::vector<int>{1, 2, 3, 6};
+      auto const source2 = std::vector<int>{3, 2, 7, 6};
+
+      auto target = std::vector<int>{};
+
+      pipes::zip(source1, source2) >>=
+        pipes::filter([](int i, int j) { return i != j; }) >>=
+        pipes::transform([](int i, int j) { return i + j; }) >>= target;
+
+      CHECK(target == std::vector<int>{4, 10});
+    }
   }
 
   SUBCASE("discard")
@@ -352,6 +417,15 @@ TEST_CASE("test")
   SUBCASE("drop n") {}
   SUBCASE("reduce") {}
 
+  SUBCASE("override") {}
+  SUBCASE("set_aggregator") {}
+  SUBCASE("map_aggregator") {}
+  SUBCASE("from istream") {}
+  SUBCASE("to ostream") {}
+
+  SUBCASE("combinations with self") {}
+  SUBCASE("cartesian product") {}
+  SUBCASE("Adjacent") {}
   SUBCASE("zip")
   {
     SUBCASE("single source")
@@ -440,23 +514,14 @@ TEST_CASE("test")
       CHECK(target == std::vector<int>{2, 4, 6});
     }
 
-    SUBCASE("one source, unpack into transform") {}
-    SUBCASE("zero sources") {}
+    SUBCASE("zero sources") 
+    {
+    }
     SUBCASE("source with reference types") {}
 
     // todo: work with different input sources, such as map, not just vectors.
     // Just need to be iterable
   }
-  SUBCASE("override") {}
-  SUBCASE("set_aggregator") {}
-  SUBCASE("map_aggregator") {}
-  SUBCASE("from istream") {}
-  SUBCASE("to ostream") {}
-
-  SUBCASE("combinations with self") {}
-  SUBCASE("combinations between two (cartesian product)") {}
-  SUBCASE("Adjacent") {}
-  SUBCASE("mux") {}
 
   // todo: work with maps
   // todo: work with sets
