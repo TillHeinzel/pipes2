@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GenericImplementation/impl.hpp"
+#include "detail/GenericImplementation/impl.hpp"
 
 namespace pipes::detail
 {
@@ -35,8 +35,7 @@ namespace pipes::detail
     PIPES_RETURN(connectPipeline(source + sink).run());
 } // namespace pipes::detail
 
-#include "SpecificPipes/ForEach.hpp"
-#include "SpecificPipes/PushBack.hpp"
+#include "api.hpp"
 
 namespace pipes::detail
 {

@@ -23,20 +23,12 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<class... Ts, class F, std::size_t... Is>
-  auto tuple_transform_impl(std::tuple<Ts...>& t,
-                            F const& f,
-                            std::index_sequence<Is...>)
-  {
-    return std::tuple{f(std::get<Is>(t))...};
-  }
-
   template<class... Ts, class F>
-  auto transform(std::tuple<Ts...>& t, F const& f)
+  auto transform(std::tuple<Ts...>& ts, F const& f) 
   {
-    return tuple_transform_impl(t, f, std::index_sequence_for<Ts...>{});
+    return std::apply([&f](auto&&... ts) { return std::tuple{f(ts)...}; },
+                      PIPES_FWD(ts));
   }
-
 } // namespace pipes::detail
 
 namespace pipes::detail
@@ -46,4 +38,21 @@ namespace pipes::detail
     PIPES_RETURN(std::apply([&f](auto&&... ts) { (f(ts), ...); },
                             PIPES_FWD(tup)))
 
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class... Its, class... Ends, std::size_t... Is>
+  bool any_end_impl(std::tuple<Its...> const& its,
+                    std ::tuple<Ends...> const& ends,
+                    std::index_sequence<Is...>)
+  {
+    return ((std::get<Is>(its) == std::get<Is>(ends)) || ...);
+  }
+
+  template<class... Its, class... Ends>
+  bool any_end(std::tuple<Its...> its, std::tuple<Ends...> ends)
+  {
+    return any_end_impl(its, ends, std::index_sequence_for<Its...>{});
+  }
 } // namespace pipes::detail

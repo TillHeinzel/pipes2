@@ -402,6 +402,8 @@ TEST_CASE("test")
       using Sink3 = decltype(pipes::discard<int>());
       static_assert(!pipes::CanLink<SourceSection, Sink3>);
     }
+
+    // todo: typed with types that can be converted to?
   }
 
   SUBCASE("drop")
@@ -513,6 +515,7 @@ TEST_CASE("test")
   SUBCASE("flatten") {}
   SUBCASE("drop n") {}
   SUBCASE("reduce") {}
+  SUBCASE("reduce each") {}
 
   SUBCASE("override") {}
   SUBCASE("set_aggregator") {}
@@ -641,4 +644,7 @@ TEST_CASE("test")
   //
   // todo: generic forms of source, sink, and pipe, that basically allow doing
   // whatever, as long as the interface is kept
+
+  // todo: make work with tuples! pipelines for tuples! that would be cool and
+  // useful
 }

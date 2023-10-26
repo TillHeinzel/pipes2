@@ -4,8 +4,8 @@
 #include <tuple>
 #include <vector>
 
-#include "Utility/RETURN.hpp"
-#include "Utility/FWD.hpp"
+#include "detail/Utility/RETURN.hpp"
+#include "detail/Utility/FWD.hpp"
 
 #include "forUI.hpp"
 
