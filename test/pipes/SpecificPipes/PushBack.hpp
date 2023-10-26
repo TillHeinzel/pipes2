@@ -9,6 +9,9 @@ namespace pipes::detail
   template<class T>
   struct PushBackSink
   {
+    PushBackSink(std::vector<T>& v) : v{v} {}
+    PushBackSink(PushBackSink const&) = default;
+
     std::vector<T>& v;
 
     void push(T t) { v.push_back(t); }

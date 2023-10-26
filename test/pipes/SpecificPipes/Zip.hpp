@@ -3,23 +3,10 @@
 #include <vector>
 
 #include "../GenericImplementation/impl.hpp"
+#include "../Utility/reverse.hpp"
 
 namespace pipes::detail
 {
-  template<class... Ts, class F, std::size_t... Is>
-  auto tuple_transform_impl(std::tuple<Ts...>& t,
-                            F const& f,
-                            std::index_sequence<Is...>)
-  {
-    return std::tuple{f(std::get<Is>(t))...};
-  }
-
-  template<class... Ts, class F>
-  auto transform(std::tuple<Ts...>& t, F const& f)
-  {
-    return tuple_transform_impl(t, f, std::index_sequence_for<Ts...>{});
-  }
-
   template<class... Its, class... Ends, std::size_t... Is>
   bool any_end_impl(std::tuple<Its...> const& its,
                     std ::tuple<Ends...> const& ends,
@@ -33,6 +20,7 @@ namespace pipes::detail
   {
     return any_end_impl(its, ends, std::index_sequence_for<Its...>{});
   }
+
 
   template<class... Ts>
   struct Zip

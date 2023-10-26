@@ -435,7 +435,73 @@ TEST_CASE("test")
     }
   }
 
-  SUBCASE("fork") {}
+  SUBCASE("fork")
+  {
+    SUBCASE("to single vector")
+    {
+      auto source = std::vector{1, 2, 3, 4};
+      auto sink = std::vector<int>{};
+
+      source >>= pipes::fork(sink);
+
+      CHECK(sink == source);
+    }
+
+    SUBCASE("to single pipeline")
+    {
+      auto source = std::vector{1, 2, 3, 4};
+      auto sink = std::vector<int>{};
+
+      auto target = pipes::drop(0) >>= sink;
+
+      source >>= pipes::fork(target);
+
+      CHECK(sink == source);
+    }
+
+    SUBCASE("to multiple vectors")
+    {
+      auto source = std::vector{1, 2, 3, 4};
+      auto sink1 = std::vector<int>{};
+      auto sink2 = std::vector<int>{};
+
+      source >>= pipes::fork(sink1, sink2);
+
+      CHECK(sink1 == source);
+      CHECK(sink2 == source);
+    }
+
+    SUBCASE("to multiple pipelines")
+    {
+      auto source = std::vector{1, 2, 3, 4};
+      auto sink1 = std::vector<int>{};
+      auto sink2 = std::vector<int>{};
+
+      auto target1 = pipes::drop(1) >>= sink1;
+      auto target2 = pipes::drop(2) >>= sink2;
+
+      source >>= pipes::fork(target1, target2);
+
+      CHECK(sink1 == std::vector{2, 3, 4});
+      CHECK(sink2 == std::vector{3, 4});
+    }
+
+    SUBCASE("to mixture of pipelines and vectors")
+    {
+      auto source = std::vector{1, 2, 3, 4};
+      auto sink1 = std::vector<int>{};
+      auto sink2 = std::vector<int>{};
+
+      auto target2 = pipes::drop(2) >>= sink2;
+
+      source >>= pipes::fork(sink1, target2);
+
+      CHECK(sink1 == std::vector{1, 2, 3, 4});
+      CHECK(sink2 == std::vector{3, 4});
+    }
+
+    // todo: fail with move-only types
+  }
   SUBCASE("join") {}
   SUBCASE("partition") {}
   SUBCASE("switch") {}
@@ -520,13 +586,13 @@ TEST_CASE("test")
     {
       auto const source1 = std::vector<int>{1, 2, 3};
       auto const source2 = std::vector<std::string>{"a", "b", "c"};
-      auto const source3 = std::vector<float>{1.1, 2.2, 3.3};
+      auto const source3 = std::vector<double>{1.1, 2.2, 3.3};
 
-      auto target = std::vector<std::tuple<int, std::string, float>>{};
+      auto target = std::vector<std::tuple<int, std::string, double>>{};
 
       pipes::zip(source1, source2, source3) >>= target;
 
-      CHECK(target == std::vector<std::tuple<int, std::string, float>>{
+      CHECK(target == std::vector<std::tuple<int, std::string, double>>{
                         {1, "a", 1.1},
                         {2, "b", 2.2},
                         {3, "c", 3.3}
@@ -552,20 +618,27 @@ TEST_CASE("test")
     // Just need to be iterable
   }
 
+  // todo: generalize sources from vectors to more general types that can be
+  // iterated (sources) and pushed back/inserted
+  //
   // todo: work with maps
+  //
   // todo: work with sets
+  //
   // todo: allow temporaries as sources
+  //
   // todo: allow temporaries as targets, to be returned in the end
+  //
   // todo: different operators, including <<= >>= << >> |
-  // todo: move-only types
-  // todo: big types with lots of data (do not have to copy everything all the
-  // time)
+  //
+  // todo: move-only types todo: big types with lots of data (do not
+  // have to copy everything all the time)
+  //
   // todo: generators and take-from for generator with effectively infinite
   // sources
   //
   // todo: use as output iterators for stl algorithms
   //
-  // todo: generic
-  // forms of source, sink, and pipe, that basically allow doing whatever, as
-  // long as the interface is kept
+  // todo: generic forms of source, sink, and pipe, that basically allow doing
+  // whatever, as long as the interface is kept
 }

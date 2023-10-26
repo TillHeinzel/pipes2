@@ -11,6 +11,7 @@
 #include "SpecificPipes/Zip.hpp"
 
 #include "SpecificPipes/PushBack.hpp"
+#include "SpecificPipes/Fork.hpp"
 
 namespace pipes
 {
