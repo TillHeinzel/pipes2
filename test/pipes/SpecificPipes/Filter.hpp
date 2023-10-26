@@ -9,8 +9,13 @@ namespace pipes::detail
   {
     F f;
 
-    auto push(auto& next, auto&&... t)
-      PIPES_RETURN(f(t...) ? next.push(PIPES_FWD(t)...) : void());
+    
+    template<class... Ts>
+      requires(std::invocable<F, Ts...>)
+    auto push(SinkFor<Ts...> auto& next, Ts&&... ts)
+    {
+      if(f(ts...)) next.push(PIPES_FWD(ts)...);
+    }
   };
 
   namespace api

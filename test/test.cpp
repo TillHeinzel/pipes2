@@ -371,10 +371,11 @@ TEST_CASE("test")
     {
       using SourceSection = std::vector<int>;
 
-      static_assert(pipes::CanLink<SourceSection, decltype(pipes::discard<int>())>);
-
       static_assert(
-        !pipes::CanLink<SourceSection, decltype(pipes::discard<std::string>())>);
+        pipes::CanLink<SourceSection, decltype(pipes::discard<int>())>);
+
+      static_assert(!pipes::CanLink<SourceSection,
+                                    decltype(pipes::discard<std::string>())>);
     }
 
     SUBCASE("typed with tuple")
@@ -403,7 +404,37 @@ TEST_CASE("test")
     }
   }
 
-  SUBCASE("drop until") {}
+  SUBCASE("drop")
+  {
+    SUBCASE("count")
+    {
+      auto source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto sink = std::vector<int>{};
+      source >>= pipes::drop(3) >>= sink;
+
+      CHECK(sink == std::vector{4, 5});
+    }
+    SUBCASE("drop until")
+    {
+      auto source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto sink = std::vector<int>{};
+      source >>= pipes::drop_until([](int i) { return i == 4; }) >>= sink;
+
+      CHECK(sink == std::vector{4, 5});
+    }
+    SUBCASE("drop while")
+    {
+      auto source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto sink = std::vector<int>{};
+      source >>= pipes::drop_while([](int i) { return i != 4; }) >>= sink;
+
+      CHECK(sink == std::vector{4, 5});
+    }
+  }
+
   SUBCASE("fork") {}
   SUBCASE("join") {}
   SUBCASE("partition") {}
@@ -514,9 +545,7 @@ TEST_CASE("test")
       CHECK(target == std::vector<int>{2, 4, 6});
     }
 
-    SUBCASE("zero sources") 
-    {
-    }
+    SUBCASE("zero sources") {}
     SUBCASE("source with reference types") {}
 
     // todo: work with different input sources, such as map, not just vectors.
@@ -530,5 +559,13 @@ TEST_CASE("test")
   // todo: different operators, including <<= >>= << >> |
   // todo: move-only types
   // todo: big types with lots of data (do not have to copy everything all the
-  // time) todo: generators and take-from for generator
+  // time)
+  // todo: generators and take-from for generator with effectively infinite
+  // sources
+  //
+  // todo: use as output iterators for stl algorithms
+  //
+  // todo: generic
+  // forms of source, sink, and pipe, that basically allow doing whatever, as
+  // long as the interface is kept
 }
