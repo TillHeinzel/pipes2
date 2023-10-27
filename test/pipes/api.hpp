@@ -10,6 +10,7 @@
 #include "detail/PushBack.hpp"
 #include "detail/Stride.hpp"
 #include "detail/Switch.hpp"
+#include "detail/Tee.hpp"
 #include "detail/Transform.hpp"
 
 #include "apihelpers.hpp"
@@ -48,6 +49,8 @@ namespace pipes::detail::api
   }
 
   auto flatten() { return pipe(Flatten{}); }
+
+  auto tee(UsableAsSink auto&& v) { return pipe(Tee{useAsSink(PIPES_FWD(v))}); }
 
   auto fork(UsableAsSink auto&&... s)
   {

@@ -436,6 +436,23 @@ TEST_CASE("test")
 
       CHECK(sink == std::vector{4, 5});
     }
+    SUBCASE("multiple parameters")
+    {
+      auto source = std::vector<std::tuple<int, int>>{
+        {1, 2},
+        {2, 2},
+        {3, 5}
+      };
+
+      auto sink = std::vector<std::tuple<int, int>>{};
+      source >>= pipes::drop_until([](int i, int j) { return i == j; }) >>=
+        sink;
+
+      CHECK(sink == std::vector<std::tuple<int, int>>{
+                      {2, 2},
+                      {3, 5}
+      });
+    }
   }
 
   SUBCASE("fork")
@@ -866,8 +883,34 @@ TEST_CASE("test")
     }
   }
 
-  SUBCASE("take while") {}
-  SUBCASE("tee") {}
+  SUBCASE("tee")
+  {
+    SUBCASE("")
+    {
+      auto source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto sink = std::vector<int>{};
+      auto intermediate = std::vector<int>{};
+
+      source >>= pipes::tee(intermediate) >>= sink;
+
+      CHECK(sink == source);
+      CHECK(intermediate == source);
+    }
+
+    SUBCASE("")
+    {
+      auto source = std::vector<int>{1, 2, 3, 4, 5};
+
+      auto sink = std::vector<int>{};
+      auto intermediate = std::vector<int>{};
+
+      source >>= pipes::tee(pipes::push_back(intermediate)) >>= sink;
+
+      CHECK(sink == source);
+      CHECK(intermediate == source);
+    }
+  }
   SUBCASE("unzip") {}
   SUBCASE("drop n") {}
   SUBCASE("reduce") {}
