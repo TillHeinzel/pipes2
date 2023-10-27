@@ -1,13 +1,14 @@
 #pragma once
 
 #include "detail/Discard.hpp"
-#include "detail/Drop.hpp"
+#include "detail/DropTake.hpp"
 #include "detail/Filter.hpp"
 #include "detail/Flatten.hpp"
 #include "detail/ForEach.hpp"
 #include "detail/Fork.hpp"
 #include "detail/Partition.hpp"
 #include "detail/PushBack.hpp"
+#include "detail/Stride.hpp"
 #include "detail/Switch.hpp"
 #include "detail/Transform.hpp"
 
@@ -25,7 +26,6 @@ namespace pipes::detail::api
 
 namespace pipes::detail::api
 {
-
   auto transform(auto f) { return pipe(Transform{f}); }
 
   auto filter(auto f) { return pipe(Filter{f}); }
@@ -35,6 +35,17 @@ namespace pipes::detail::api
   auto drop_while(auto f) { return drop_until(negate(f)); }
 
   auto drop(std::size_t count) { return drop_until(invokedTimes(count)); }
+
+  auto take_until(auto f) { return filter(negate(fulfilledOnce(f))); }
+
+  auto take_while(auto f) { return take_until(negate(f)); }
+
+  auto take(std::size_t count) { return take_until(invokedTimes(count)); }
+
+  auto stride(std::size_t step, std::size_t offset = 0)
+  {
+    return pipe(Filter{stride_f(step, offset)});
+  }
 
   auto flatten() { return pipe(Flatten{}); }
 
