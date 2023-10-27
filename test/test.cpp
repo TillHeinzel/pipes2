@@ -505,7 +505,53 @@ TEST_CASE("test")
 
     // todo: fail with move-only types
   }
-  SUBCASE("flatten") {}
+  SUBCASE("flatten")
+  {
+    SUBCASE("simple")
+    {
+      auto source = std::vector<std::vector<int>>{
+        {1, 2}
+      };
+
+      auto target = std::vector<int>{};
+      source >>= pipes::flatten() >>= target;
+
+      CHECK(target == std::vector{1, 2});
+    }
+
+    SUBCASE("other types")
+    {
+      auto source = std::vector<std::map<int, int>>{
+        {{1, 2}, {3, 4}},
+        {{5, 6}},
+        {{7, 8}, {9, 10}}
+      };
+
+      auto target = std::vector<std::pair<int, int>>{};
+      source >>= pipes::flatten() >>= target;
+
+      CHECK(target == std::vector<std::pair<int, int>>{
+                        {1,  2},
+                        {3,  4},
+                        {5,  6},
+                        {7,  8},
+                        {9, 10}
+      });
+    }
+
+    SUBCASE("multiple layers")
+    {
+      auto source = std::vector<std::vector<std::vector<int>>>{
+        {{1, 2}},
+        {{3, 4}, {5, 6}}
+      };
+
+      auto target = std::vector<int>{};
+      source >>= pipes::flatten() >>= pipes::flatten() >>= target;
+
+      CHECK(target == std::vector{1, 2, 3, 4, 5, 6});
+    }
+  }
   SUBCASE("partition") {}
   SUBCASE("switch") {}
   SUBCASE("stride") {}
@@ -528,11 +574,11 @@ TEST_CASE("test")
   SUBCASE("Adjacent") {}
   SUBCASE("interleave")
   {
-    // should just mix the input sources
+    // todo: should just mix the input sources
   }
   SUBCASE("intersperse")
   {
-    // interleaves with a constant, so e.g. a comma for printing
+    // todo: interleaves with a constant, so e.g. a comma for printing
   }
   SUBCASE("zip")
   {
@@ -627,16 +673,25 @@ TEST_CASE("test")
 
     SUBCASE("mixed source types")
     {
-      // auto const source1 = std::vector<int>{1, 2, 3};
-      // auto source2 = std::map<int, int>{
-      //   {1, 11},
-      //   {2, 22},
-      //   {3, 33}
-      // };
-    }
+      auto const source1 = std::vector<int>{1, 2, 3};
+      auto source2 = std::map<int, int>{
+        {4, 44},
+        {5, 55},
+        {6, 66}
+      };
 
-    // todo: work with different input sources, such as map, not just vectors.
-    // Just need to be iterable
+      auto target = std::vector<std::tuple<int, int>>{};
+
+      pipes::zip(source1, source2) >>= pipes::transform([](int i, auto p) {
+        return std::tuple{i, p.second};
+      }) >>= pipes::push_back(target);
+
+      CHECK(target == std::vector<std::tuple<int, int>>{
+                        {1, 44},
+                        {2, 55},
+                        {3, 66}
+      });
+    }
   }
 
   SUBCASE("for each-iterables as inputs")
@@ -702,7 +757,11 @@ TEST_CASE("test")
           return std::tuple{p1.first, p2.second};
         }) >>= pipes::push_back(target);
 
-        CHECK(target == std::vector<std::tuple<int, int>>{{1, 44}, {2, 55}, {3, 66}});
+        CHECK(target == std::vector<std::tuple<int, int>>{
+                          {1, 44},
+                          {2, 55},
+                          {3, 66}
+        });
       }
     }
 
@@ -715,6 +774,7 @@ TEST_CASE("test")
 
   SUBCASE("use as output iterator for std::algorithms")
   {
+    // todo:
     // std::copy(v.begin(), v.end(), pipes::output_iterator() >>=
     // pipes::transform(...) >>= target);
   }

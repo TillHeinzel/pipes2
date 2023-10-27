@@ -3,6 +3,7 @@
 #include "detail/Discard.hpp"
 #include "detail/Drop.hpp"
 #include "detail/Filter.hpp"
+#include "detail/Flatten.hpp"
 #include "detail/ForEach.hpp"
 #include "detail/Fork.hpp"
 #include "detail/PushBack.hpp"
@@ -37,6 +38,7 @@ namespace pipes::detail::api
 
   auto drop(std::size_t count) { return drop_until(invokedTimes(count)); }
 
+  auto flatten() { return pipe(Flatten{}); }
 } // namespace pipes::detail::api
 
 namespace pipes::detail::api
