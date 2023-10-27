@@ -6,9 +6,10 @@
 #include "detail/Flatten.hpp"
 #include "detail/ForEach.hpp"
 #include "detail/Fork.hpp"
-#include "detail/PushBack.hpp"
-#include "detail/Transform.hpp"
 #include "detail/Partition.hpp"
+#include "detail/PushBack.hpp"
+#include "detail/Switch.hpp"
+#include "detail/Transform.hpp"
 
 #include "apihelpers.hpp"
 
@@ -49,6 +50,16 @@ namespace pipes::detail::api
     return sink(Partition{PIPES_FWD(f),
                           useAsSink(PIPES_FWD(ifTrue)),
                           useAsSink(PIPES_FWD(ifFalse))});
+  }
+
+  constexpr auto default_ = Case{[](auto&&...) { return true; }};
+
+  auto case_(auto f) { return Case{f}; }
+
+  template<class... Fs, class... Ss>
+  auto switch_(CaseSink<Fs, Ss>... cs)
+  {
+    return sink(Switch{std::tuple{cs...}});
   }
 } // namespace pipes::detail::api
 

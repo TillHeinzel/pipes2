@@ -50,7 +50,7 @@ namespace pipes::detail
   };
 
   template<std::ranges::range... Rs>
-  auto getIteratorPairs(std::tuple<Rs...>& rs) 
+  auto getIteratorPairs(std::tuple<Rs...>& rs)
   {
     constexpr auto getIteratorPair = [](auto const& v) {
       return IteratorPair{v.begin(), v.end()};
@@ -84,4 +84,18 @@ namespace pipes::detail
     parallelIterate(getIteratorPairs(ranges), f);
   }
 
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class F, class... Ts>
+  void callFirstSuccess(std::tuple<Ts...> cases, F f)
+  {
+    auto ff = [f](auto... ts) {
+      // short-circuits. after success, no more calls to f
+      return (f(ts) || ...);
+    };
+
+    std::apply(ff, cases);
+  }
 } // namespace pipes::detail

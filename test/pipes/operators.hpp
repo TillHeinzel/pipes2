@@ -15,5 +15,5 @@ namespace pipes::detail
   auto operator>>=(Source&& source, Sink&& sink)
   {
     return link(PIPES_FWD(source), PIPES_FWD(sink));
-  }
+  }  
 }

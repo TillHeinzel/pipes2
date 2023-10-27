@@ -51,6 +51,15 @@ namespace pipes::detail
     PIPES_RETURN(link(n, make_push_back_sink(p)));
 } // namespace pipes::detail
 
+namespace pipes::detail
+{
+  template<class F>
+  auto link(Case<F> c, UsableAsSink auto&& s)
+  {
+    return CaseSink{c.f, useAsSink(PIPES_FWD(s))};
+  }
+} // namespace pipes::detail
+
 namespace pipes::detail::api
 {
   template<class SourceSection, class SinkSection>
