@@ -696,14 +696,13 @@ TEST_CASE("test")
           {6, 66}
         };
 
-        //auto target = std::vector<std::tuple<int, int>>{};
+        auto target = std::vector<std::tuple<int, int>>{};
 
-        pipes::zip(source, source2) 
-          //>>= pipes::transform([](auto p1, auto p2) { return std::tuple{};}) 
-          //>>= pipes::push_back(target)
-          ;
+        pipes::zip(source, source2) >>= pipes::transform([](auto p1, auto p2) {
+          return std::tuple{p1.first, p2.second};
+        }) >>= pipes::push_back(target);
 
-        //CHECK(target == std::vector<std::tuple<int, int>>{{1, 11}, {2, 22}, {3, 33}};
+        CHECK(target == std::vector<std::tuple<int, int>>{{1, 44}, {2, 55}, {3, 66}});
       }
     }
 
