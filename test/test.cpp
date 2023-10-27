@@ -503,9 +503,22 @@ TEST_CASE("test")
       CHECK(sink2 == std::vector{3, 4});
     }
 
-    // todo: fail with move-only types
+    SUBCASE("with unpacking")
+    {
+      auto source = std::vector<std::tuple<int, int>>{
+        {1, 2},
+        {3, 4}
+      };
+      auto sink = std::vector<int>{};
 
-    // todo: fork with unpacking
+      auto target = pipes::transform([](int i, int j) { return i + j; }) >>=
+        sink;
+
+      source >>= pipes::fork(target);
+
+      CHECK(sink == std::vector{3, 7});
+    }
+    // todo: fail with move-only types
   }
   SUBCASE("flatten")
   {
