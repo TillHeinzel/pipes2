@@ -8,6 +8,7 @@
 #include "detail/Fork.hpp"
 #include "detail/PushBack.hpp"
 #include "detail/Transform.hpp"
+#include "detail/Partition.hpp"
 
 #include "apihelpers.hpp"
 
@@ -23,10 +24,6 @@ namespace pipes::detail::api
 
 namespace pipes::detail::api
 {
-  auto fork(UsableAsSink auto&&... s)
-  {
-    return sink(Fork{std::tuple{useAsSink(PIPES_FWD(s))...}});
-  }
 
   auto transform(auto f) { return pipe(Transform{f}); }
 
@@ -39,6 +36,20 @@ namespace pipes::detail::api
   auto drop(std::size_t count) { return drop_until(invokedTimes(count)); }
 
   auto flatten() { return pipe(Flatten{}); }
+
+  auto fork(UsableAsSink auto&&... s)
+  {
+    return sink(Fork{std::tuple{useAsSink(PIPES_FWD(s))...}});
+  }
+
+  auto partition(auto&& f,
+                 UsableAsSink auto&& ifTrue,
+                 UsableAsSink auto&& ifFalse)
+  {
+    return sink(Partition{PIPES_FWD(f),
+                          useAsSink(PIPES_FWD(ifTrue)),
+                          useAsSink(PIPES_FWD(ifFalse))});
+  }
 } // namespace pipes::detail::api
 
 namespace pipes::detail::api
