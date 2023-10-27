@@ -24,7 +24,7 @@ namespace pipes::detail
 namespace pipes::detail
 {
   template<class... Ts, class F>
-  auto transform(std::tuple<Ts...>& ts, F const& f) 
+  auto transform(std::tuple<Ts...>& ts, F const& f)
   {
     return std::apply([&f](auto&&... ts) { return std::tuple{f(ts)...}; },
                       PIPES_FWD(ts));
@@ -42,17 +42,46 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<class... Its, class... Ends, std::size_t... Is>
-  bool any_end_impl(std::tuple<Its...> const& its,
-                    std ::tuple<Ends...> const& ends,
-                    std::index_sequence<Is...>)
+  template<class It, class End>
+  struct IteratorPair
   {
-    return ((std::get<Is>(its) == std::get<Is>(ends)) || ...);
+    It it;
+    End end;
+  };
+
+  template<std::ranges::range... Rs>
+  auto getIteratorPairs(std::tuple<Rs...>& rs) 
+  {
+    constexpr auto getIteratorPair = [](auto const& v) {
+      return IteratorPair{v.begin(), v.end()};
+    };
+
+    return transform(rs, getIteratorPair);
   }
 
   template<class... Its, class... Ends>
-  bool any_end(std::tuple<Its...> its, std::tuple<Ends...> ends)
+  void parallelIterate_impl(auto f, IteratorPair<Its, Ends>... itss)
   {
-    return any_end_impl(its, ends, std::index_sequence_for<Its...>{});
+    while(!((itss.it == itss.end) || ...))
+    {
+      f(*itss.it...);
+      (++itss.it, ...);
+    }
   }
+
+  template<class... Its, class... Ends>
+  void parallelIterate(std::tuple<IteratorPair<Its, Ends>...> itss, auto f)
+  {
+    auto ff = [f](auto&&... itss) {
+      parallelIterate_impl(f, PIPES_FWD(itss)...);
+    };
+    std::apply(ff, itss);
+  }
+
+  template<std::ranges::range... Rs>
+  void parallelIterate(std::tuple<Rs...>& ranges, auto f)
+  {
+    parallelIterate(getIteratorPairs(ranges), f);
+  }
+
 } // namespace pipes::detail

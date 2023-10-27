@@ -1,43 +1,36 @@
 #pragma once
 
+#include <ranges>
+
 #include "Utility/tuples.hpp"
 
 #include "GenericImplementation/impl.hpp"
 
 namespace pipes::detail
 {
-  template<class T>
+  template<std::ranges::range R>
   struct ForEach
   {
-    std::vector<T> const& v;
+    R const& v;
 
-    void push(SinkFor<T> auto sink)
+    void push(SinkFor<std::ranges::range_value_t<R>> auto sink)
     {
-      for(T const& t : v) { sink.push(t); }
+      for(auto const& t : v) { sink.push(t); }
     }
   };
 
-  template<class... Ts>
+  template<std::ranges::range... Rs>
   struct MultiForEach
   {
-    std::tuple<std::vector<Ts> const&...> vs;
+    std::tuple<Rs const&...> vs;
 
-    void push(SinkFor<std::tuple<Ts...>> auto sink)
+    void push(SinkFor<std::tuple<std::ranges::range_value_t<Rs>...>> auto sink)
     {
-      constexpr auto begin = [](auto const& v) { return v.begin(); };
-      constexpr auto end = [](auto const& v) { return v.end(); };
-      constexpr auto dereference = [](auto it) { return *it; };
-      constexpr auto progress = [](auto& it) { return ++it; };
+      auto doPush = [&sink](auto&&... ts) {
+        sink.push(std::tuple<std::ranges::range_value_t<Rs>...>{PIPES_FWD(ts)...});
+      };
 
-      auto its = transform(vs, begin);
-      auto ends = transform(vs, end);
-
-      while(!any_end(its, ends))
-      {
-        sink.push(std::tuple<Ts...>{transform(its, dereference)});
-
-        transform(its, progress);
-      }
+      parallelIterate(vs, doPush);
     }
   };
 } // namespace pipes::detail

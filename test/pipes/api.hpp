@@ -12,14 +12,9 @@
 
 namespace pipes::detail::api
 {
-  template<class T>
-  auto forEach(const std::vector<T>& v)
-  {
-    return source(ForEach{v});
-  }
+  auto for_each(std::ranges::range auto const& r) { return source(ForEach{r}); }
 
-  template<class... Ts>
-  auto zip(std::vector<Ts> const&... vs)
+  auto zip(std::ranges::range auto const&... vs)
   {
     return source(MultiForEach{std::tie(vs...)});
   }

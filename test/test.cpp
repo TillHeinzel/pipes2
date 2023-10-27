@@ -1,6 +1,7 @@
 #include "doctest.h"
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -504,7 +505,7 @@ TEST_CASE("test")
 
     // todo: fail with move-only types
   }
-  SUBCASE("join") {}
+  SUBCASE("flatten") {}
   SUBCASE("partition") {}
   SUBCASE("switch") {}
   SUBCASE("stride") {}
@@ -512,7 +513,6 @@ TEST_CASE("test")
   SUBCASE("take while") {}
   SUBCASE("tee") {}
   SUBCASE("unzip") {}
-  SUBCASE("flatten") {}
   SUBCASE("drop n") {}
   SUBCASE("reduce") {}
   SUBCASE("reduce each") {}
@@ -526,6 +526,14 @@ TEST_CASE("test")
   SUBCASE("combinations with self") {}
   SUBCASE("cartesian product") {}
   SUBCASE("Adjacent") {}
+  SUBCASE("interleave")
+  {
+    // should just mix the input sources
+  }
+  SUBCASE("intersperse")
+  {
+    // interleaves with a constant, so e.g. a comma for printing
+  }
   SUBCASE("zip")
   {
     SUBCASE("single source")
@@ -617,8 +625,99 @@ TEST_CASE("test")
     SUBCASE("zero sources") {}
     SUBCASE("source with reference types") {}
 
+    SUBCASE("mixed source types")
+    {
+      // auto const source1 = std::vector<int>{1, 2, 3};
+      // auto source2 = std::map<int, int>{
+      //   {1, 11},
+      //   {2, 22},
+      //   {3, 33}
+      // };
+    }
+
     // todo: work with different input sources, such as map, not just vectors.
     // Just need to be iterable
+  }
+
+  SUBCASE("for each-iterables as inputs")
+  {
+    SUBCASE("vector")
+    {
+      auto source = std::vector<int>{1, 2, 3};
+
+      auto target = std::vector<int>{};
+
+      SUBCASE("explicit")
+      {
+        pipes::for_each(source) >>= pipes::push_back(target);
+
+        CHECK(target == source);
+      }
+
+      SUBCASE("implicit")
+      {
+        source >>= pipes::push_back(target);
+
+        CHECK(target == source);
+      }
+    }
+
+    SUBCASE("map")
+    {
+      auto source = std::map<int, int>{
+        {1, 11},
+        {2, 22},
+        {3, 33}
+      };
+
+      SUBCASE("explicit")
+      {
+        auto target = std::vector<std::pair<int, int>>{};
+        pipes::for_each(source) >>= pipes::push_back(target);
+
+        CHECK(target ==
+              std::vector<std::pair<int, int>>(source.begin(), source.end()));
+      }
+
+      SUBCASE("implicit")
+      {
+        auto target = std::vector<std::pair<int, int>>{};
+        source >>= pipes::push_back(target);
+
+        CHECK(target ==
+              std::vector<std::pair<int, int>>(source.begin(), source.end()));
+      }
+
+      SUBCASE("zip")
+      {
+        auto source2 = std::map<int, int>{
+          {4, 44},
+          {5, 55},
+          {6, 66}
+        };
+
+        //auto target = std::vector<std::tuple<int, int>>{};
+
+        pipes::zip(source, source2) 
+          //>>= pipes::transform([](auto p1, auto p2) { return std::tuple{};}) 
+          //>>= pipes::push_back(target)
+          ;
+
+        //CHECK(target == std::vector<std::tuple<int, int>>{{1, 11}, {2, 22}, {3, 33}};
+      }
+    }
+
+    SUBCASE("range views")
+    {
+      SUBCASE("map keys view") {}
+      SUBCASE("map values view") {}
+    }
+  }
+
+  SUBCASE("use as output iterator for std::algorithms")
+  {
+    // std::copy(v.begin(), v.end(), pipes::output_iterator() >>=
+    // pipes::transform(...) >>= target);
   }
 
   // todo: generalize sources from vectors to more general types that can be
@@ -647,4 +746,7 @@ TEST_CASE("test")
 
   // todo: make work with tuples! pipelines for tuples! that would be cool and
   // useful
+
+  // todo: make examples that use the single-header generated from the headers
+  // and links with cmake
 }

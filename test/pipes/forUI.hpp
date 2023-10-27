@@ -39,9 +39,9 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<class T, class R>
-  auto link(std::vector<T> const& v, R n)
-    PIPES_RETURN(link(api::forEach(v), n));
+  template<class R>
+  auto link(std::ranges::range auto const& r, R n)
+    PIPES_RETURN(link(api::for_each(r), n));
 
   template<class T, class... Ops>
   auto link(SourceSection<Ops...> source, std::vector<T>& v)
