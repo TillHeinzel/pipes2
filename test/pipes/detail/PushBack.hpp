@@ -5,6 +5,9 @@
 
 namespace pipes::detail
 {
+  //template<class S, class T>
+  //concept PushBackAble = requires(S s, T t) { s.push_back(t); };
+
   template<class T>
   struct PushBackSink
   {
