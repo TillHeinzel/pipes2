@@ -99,3 +99,25 @@ namespace pipes::detail
     std::apply(ff, cases);
   }
 } // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class Tup1, class Tup2, std::size_t... Is>
+  auto tuple_zip_impl(Tup1 tup1, Tup2 tup2, std::index_sequence<Is...>)
+  {
+    return std::make_tuple(
+      std::tuple{std::get<Is>(tup1), std::get<Is>(tup2)}
+      ...
+    );
+  }
+
+  template<class Tup1, class Tup2>
+  auto tuple_zip(Tup1 tup1, Tup2 tup2)
+  {
+    static_assert(std::tuple_size_v<Tup1> == std::tuple_size_v<Tup2>);
+
+    return tuple_zip_impl(tup1,
+                          tup2,
+                          std::make_index_sequence<std::tuple_size_v<Tup1>>());
+  }
+} // namespace pipes::detail

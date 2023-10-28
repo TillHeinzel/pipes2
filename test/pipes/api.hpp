@@ -12,6 +12,7 @@
 #include "detail/Switch.hpp"
 #include "detail/Tee.hpp"
 #include "detail/Transform.hpp"
+#include "detail/Unzip.hpp"
 
 #include "apihelpers.hpp"
 
@@ -55,6 +56,11 @@ namespace pipes::detail::api
   auto fork(UsableAsSink auto&&... s)
   {
     return sink(Fork{std::tuple{useAsSink(PIPES_FWD(s))...}});
+  }
+
+  auto unzip(UsableAsSink auto&&... s)
+  {
+    return sink(Unzip{std::tuple{useAsSink(PIPES_FWD(s))...}});
   }
 
   auto partition(auto&& f,

@@ -197,9 +197,10 @@ TEST_CASE("test")
         pipes::zip(source1, source2) >>=
           pipes::filter([](int i, int j) { return i == j; }) >>= target;
 
-        CHECK(target == std::vector<std::tuple<int, int>>{
-                          {2, 2},
-                          {6, 6}
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {2, 2},
+                {6, 6}
         });
       }
     }
@@ -323,9 +324,10 @@ TEST_CASE("test")
 
         source >>= target;
 
-        CHECK(target == std::vector<std::tuple<int, int>>{
-                          {2, 2},
-                          {6, 6}
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {2, 2},
+                {6, 6}
         });
       }
 
@@ -341,9 +343,10 @@ TEST_CASE("test")
 
         pipes::zip(source1, source2) >>= sink;
 
-        CHECK(target == std::vector<std::tuple<int, int>>{
-                          {2, 2},
-                          {6, 6}
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {2, 2},
+                {6, 6}
         });
       }
 
@@ -403,9 +406,10 @@ TEST_CASE("test")
         source >>= pipes::drop_until([](int i, int j) { return i == j; }) >>=
           sink;
 
-        CHECK(sink == std::vector<std::tuple<int, int>>{
-                        {2, 2},
-                        {3, 5}
+        CHECK(sink
+              == std::vector<std::tuple<int, int>>{
+                {2, 2},
+                {3, 5}
         });
       }
     }
@@ -518,12 +522,13 @@ TEST_CASE("test")
         auto target = std::vector<std::pair<int, int>>{};
         source >>= pipes::flatten() >>= target;
 
-        CHECK(target == std::vector<std::pair<int, int>>{
-                          {1,  2},
-                          {3,  4},
-                          {5,  6},
-                          {7,  8},
-                          {9, 10}
+        CHECK(target
+              == std::vector<std::pair<int, int>>{
+                {1,  2},
+                {3,  4},
+                {5,  6},
+                {7,  8},
+                {9, 10}
         });
       }
 
@@ -588,13 +593,15 @@ TEST_CASE("test")
 
         input >>= pipes::partition(isSame, same, diff);
 
-        CHECK(same == std::vector<std::tuple<int, int>>{
-                        {1, 1},
-                        {3, 3}
+        CHECK(same
+              == std::vector<std::tuple<int, int>>{
+                {1, 1},
+                {3, 3}
         });
-        CHECK(diff == std::vector<std::tuple<int, int>>{
-                        {1, 2},
-                        {4, 5}
+        CHECK(diff
+              == std::vector<std::tuple<int, int>>{
+                {1, 2},
+                {4, 5}
         });
       }
     }
@@ -790,10 +797,11 @@ TEST_CASE("test")
 
         source >>= pipes::stride(2) >>= target;
 
-        CHECK(target == std::vector<std::tuple<int, int>>{
-                          {0, 0},
-                          {2, 2},
-                          {4, 4}
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {0, 0},
+                {2, 2},
+                {4, 4}
         });
       }
 
@@ -873,7 +881,88 @@ TEST_CASE("test")
       }
     }
 
-    SUBCASE("unzip") {}
+    SUBCASE("unzip")
+    {
+      SUBCASE("")
+      {
+        auto s = std::vector<int>{1, 2, 3};
+
+        auto t = std::vector<int>{};
+
+        pipes::zip(s) >>= pipes::unzip(t);
+
+        CHECK(t == s);
+      }
+
+      SUBCASE("")
+      {
+        auto s = std::vector<int>{1, 2, 3};
+
+        auto t = std::vector<int>{};
+
+        pipes::zip(s) >>= pipes::unzip(pipes::push_back(t));
+
+        CHECK(t == s);
+      }
+
+      SUBCASE("")
+      {
+        auto s = std::vector<std::string>{"1", "2", "3"};
+
+        auto t = std::vector<std::string>{};
+
+        pipes::zip(s) >>= pipes::unzip(t);
+
+        CHECK(t == s);
+      }
+
+      SUBCASE("")
+      {
+        auto target = std::vector<int>{};
+
+        auto sink = pipes::unzip(target);
+
+        using GoodSource = std::vector<std::tuple<int>>;
+        using BadSource = std::vector<std::tuple<std::string>>;
+
+        static_assert(pipes::CanLink<GoodSource, decltype(sink)>);
+        static_assert(!pipes::CanLink<BadSource, decltype(sink)>);
+      }
+
+      SUBCASE("")
+      {
+        auto s1 = std::vector<int>{1, 2, 3};
+        auto s2 = std::vector<std::string>{"a", "b", "c"};
+
+        auto t1 = std::vector<int>{};
+        auto t2 = std::vector<std::string>{};
+
+        pipes::zip(s1, s2) >>= pipes::unzip(t1, t2);
+
+        CHECK(t1 == s1);
+        CHECK(t2 == s2);
+      }
+
+      SUBCASE("")
+      {
+        auto s1 = std::vector<int>{1, 2, 3};
+        auto s2 = std::vector<std::tuple<int, std::string>>{
+          {4, "a"},
+          {5, "b"},
+          {6, "c"}
+        };
+
+        auto t1 = std::vector<int>{};
+        auto t2 = std::vector<int>{};
+        auto t3 = std::vector<std::string>{};
+
+        pipes::zip(s1, s2) >>= pipes::unzip(t1, pipes::unzip(t2, t3));
+
+        CHECK(t1 == s1);
+        CHECK(t2 == std::vector{4, 5, 6});
+        CHECK(t3 == std::vector<std::string>{"a", "b", "c"});
+      }
+    }
 
     SUBCASE("reduce") {}
 
@@ -926,8 +1015,9 @@ TEST_CASE("test")
           auto target = std::vector<std::pair<int, int>>{};
           pipes::for_each(source) >>= pipes::push_back(target);
 
-          CHECK(target ==
-                std::vector<std::pair<int, int>>(source.begin(), source.end()));
+          CHECK(
+            target
+            == std::vector<std::pair<int, int>>(source.begin(), source.end()));
         }
 
         SUBCASE("implicit")
@@ -935,8 +1025,9 @@ TEST_CASE("test")
           auto target = std::vector<std::pair<int, int>>{};
           source >>= pipes::push_back(target);
 
-          CHECK(target ==
-                std::vector<std::pair<int, int>>(source.begin(), source.end()));
+          CHECK(
+            target
+            == std::vector<std::pair<int, int>>(source.begin(), source.end()));
         }
 
         SUBCASE("zip")
@@ -949,15 +1040,16 @@ TEST_CASE("test")
 
           auto target = std::vector<std::tuple<int, int>>{};
 
-          pipes::zip(source, source2) >>=
-            pipes::transform([](auto p1, auto p2) {
+          pipes::zip(source, source2) >>= pipes::transform(
+            [](auto p1, auto p2) {
               return std::tuple{p1.first, p2.second};
             }) >>= pipes::push_back(target);
 
-          CHECK(target == std::vector<std::tuple<int, int>>{
-                            {1, 44},
-                            {2, 55},
-                            {3, 66}
+          CHECK(target
+                == std::vector<std::tuple<int, int>>{
+                  {1, 44},
+                  {2, 55},
+                  {3, 66}
           });
         }
       }
@@ -1004,8 +1096,8 @@ TEST_CASE("test")
 
           pipes::zip(source) >>= target;
 
-          CHECK(target ==
-                std::vector<std::tuple<std::string>>{{"1"}, {"2"}, {"3"}});
+          CHECK(target
+                == std::vector<std::tuple<std::string>>{{"1"}, {"2"}, {"3"}});
         }
       }
 
@@ -1018,10 +1110,11 @@ TEST_CASE("test")
 
         pipes::zip(source1, source2) >>= target;
 
-        CHECK(target == std::vector<std::tuple<int, std::string>>{
-                          {1, "a"},
-                          {2, "b"},
-                          {3, "c"}
+        CHECK(target
+              == std::vector<std::tuple<int, std::string>>{
+                {1, "a"},
+                {2, "b"},
+                {3, "c"}
         });
       }
 
@@ -1034,9 +1127,10 @@ TEST_CASE("test")
 
         pipes::zip(source1, source2) >>= target;
 
-        CHECK(target == std::vector<std::tuple<int, std::string>>{
-                          {1, "a"},
-                          {2, "b"}
+        CHECK(target
+              == std::vector<std::tuple<int, std::string>>{
+                {1, "a"},
+                {2, "b"}
         });
       }
 
@@ -1050,10 +1144,11 @@ TEST_CASE("test")
 
         pipes::zip(source1, source2, source3) >>= target;
 
-        CHECK(target == std::vector<std::tuple<int, std::string, double>>{
-                          {1, "a", 1.1},
-                          {2, "b", 2.2},
-                          {3, "c", 3.3}
+        CHECK(target
+              == std::vector<std::tuple<int, std::string, double>>{
+                {1, "a", 1.1},
+                {2, "b", 2.2},
+                {3, "c", 3.3}
         });
       }
 
@@ -1083,14 +1178,16 @@ TEST_CASE("test")
 
         auto target = std::vector<std::tuple<int, int>>{};
 
-        pipes::zip(source1, source2) >>= pipes::transform([](int i, auto p) {
-          return std::tuple{i, p.second};
-        }) >>= pipes::push_back(target);
+        pipes::zip(source1, source2) >>= pipes::transform(
+          [](int i, auto p) {
+            return std::tuple{i, p.second};
+          }) >>= pipes::push_back(target);
 
-        CHECK(target == std::vector<std::tuple<int, int>>{
-                          {1, 44},
-                          {2, 55},
-                          {3, 66}
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 44},
+                {2, 55},
+                {3, 66}
         });
       }
     }
