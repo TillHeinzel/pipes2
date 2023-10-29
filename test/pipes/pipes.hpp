@@ -3,7 +3,7 @@
 
 #include "operators.hpp"
 
-#include "api.hpp"
+#include "makePipes.hpp"
 
 namespace pipes
 {

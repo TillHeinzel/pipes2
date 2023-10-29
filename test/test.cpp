@@ -1363,7 +1363,6 @@ TEST_CASE("test")
 
     SUBCASE("override")
     {
-      SUBCASE("output iterator") {}
       SUBCASE("iterator-pair (begin, end)") {}
 
       SUBCASE("array") {}
@@ -1386,6 +1385,8 @@ TEST_CASE("test")
       SUBCASE("multiset") {}
       SUBCASE("multimap") {}
     }
+
+    SUBCASE("output iterator") {}
 
     SUBCASE("set_aggregator") {}
     SUBCASE("map_aggregator") {}

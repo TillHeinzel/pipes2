@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tuple>
+#include <ranges>
 
 namespace pipes::detail
 {
