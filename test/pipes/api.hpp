@@ -8,6 +8,7 @@
 #include "detail/Fork.hpp"
 #include "detail/Partition.hpp"
 #include "detail/PushBack.hpp"
+#include "detail/Reduce_each.hpp"
 #include "detail/Stride.hpp"
 #include "detail/Switch.hpp"
 #include "detail/Tee.hpp"
@@ -31,6 +32,13 @@ namespace pipes::detail::api
   auto transform(auto f) { return pipe(Transform{f}); }
 
   auto filter(auto f) { return pipe(Filter{f}); }
+
+  auto reduce_each(auto f, auto initial)
+  {
+    return transform(reduce_f(f, initial));
+  };
+
+  auto reduce_each(auto f) { return transform(reduce_f(f)); };
 
   auto drop_until(auto f) { return filter(fulfilledOnce(f)); }
 
