@@ -1,5 +1,7 @@
 #pragma once
 
+#include <forward_list>
+
 #include "detail/Discard.hpp"
 #include "detail/DropTake.hpp"
 #include "detail/Filter.hpp"
@@ -93,7 +95,19 @@ namespace pipes::detail::api
 
 namespace pipes::detail::api
 {
-  auto push_back(PushBackAble auto& v) { return make_push_back_sink(v); }
+  template<class R>
+    requires(PushBackAbleFor<R, typename R::value_type>)
+  auto push_back(R& r)
+  {
+    return make_push_back_sink(r);
+  }
+
+  template<class R>
+    requires(PushFrontAbleFor<R, typename R::value_type>)
+  auto push_front(R& r)
+  {
+    return make_push_front_sink(r);
+  }
 
   auto discard() { return sink(Discard{}); }
 

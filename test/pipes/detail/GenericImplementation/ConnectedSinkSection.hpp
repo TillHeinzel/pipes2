@@ -30,6 +30,7 @@ namespace pipes::detail
     auto f = [s](auto&&... ts) mutable PIPES_RETURN(s.push(PIPES_FWD(ts)...));
     return FlowNode{f};
   }
+
   auto pieceNode(auto op, auto next)
   {
     auto f = [op, next](auto&&... ts) mutable PIPES_RETURN(
@@ -79,17 +80,28 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<class Source, class Sink>
+  template<class X>
+  concept hasValue = requires(X x) { x.value(); };
+
+  template<class Source, class Sink, class Returner>
     requires(ValidConnectedPipeline<Source, Sink>)
   struct ConnectedPipeline
   {
     Source source;
     Sink sink;
+    Returner returner;
 
-    void run() { source.push(sink); }
+    decltype(auto) run() &&
+    {
+      source.push(sink);
+      if constexpr(hasValue<Returner>)
+      {
+        return returner.value();
+      }
+    }
   };
 
-  auto connectPipeline(auto p)
-    PIPES_RETURN(ConnectedPipeline{p.source, connect_to_sink(p.pipe, p.sink)});
+  auto connectPipeline(auto p) PIPES_RETURN(
+    ConnectedPipeline{p.source, connect_to_sink(p.pipe, p.sink), p.sink});
 
 } // namespace pipes::detail

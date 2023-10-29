@@ -1,11 +1,13 @@
 #include "doctest.h"
 
+#include "pipes/pipes.hpp"
+#include <deque>
+#include <forward_list>
 #include <iostream>
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
-
-#include "pipes/pipes.hpp"
 
 template<typename T>
 concept Streamable = requires(std::ostream& os, T value) {
@@ -39,22 +41,25 @@ namespace std
     return stream;
   }
 
-  template<class T>
-  std::ostream& operator<<(std::ostream& stream, const std::vector<T>& v)
-    requires(Streamable<T>)
+  template<std::ranges::range R>
+  std::ostream& operator<<(std::ostream& stream, R const& v)
+    requires(Streamable<std::ranges::range_value_t<R>>
+             && !std::same_as<R, std::string>)
 
   {
-    stream << "{";
+    using namespace std::literals::string_literals;
+
+    stream << "{"s;
     if(!v.empty())
     {
       stream << v.front();
 
       for(auto it = std::next(v.begin()); it != v.end(); ++it)
       {
-        stream << ", " << *it;
+        stream << ", "s << *it;
       }
     }
-    stream << "}";
+    stream << "}"s;
     return stream;
   }
 } // namespace std
@@ -964,8 +969,6 @@ TEST_CASE("test")
       }
     }
 
-    SUBCASE("reduce") {}
-
     SUBCASE("reduce each")
     {
       SUBCASE("with intial value")
@@ -1233,8 +1236,81 @@ TEST_CASE("test")
 
   SUBCASE("sinks")
   {
-    SUBCASE("push_back") {}
-    SUBCASE("push_front") {}
+    SUBCASE("push_back")
+    {
+      SUBCASE("vector")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::vector<int>{};
+
+        pipes::for_each(source) >>= pipes::push_back(sink);
+        CHECK(sink == source);
+      }
+
+      SUBCASE("return value from pipeline")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::vector<int>{};
+
+        auto& retval = pipes::for_each(source) >>= pipes::push_back(sink);
+        CHECK(&sink == &retval);
+      }
+
+      SUBCASE("deque")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::deque<int>{};
+
+        pipes::for_each(source) >>= pipes::push_back(sink);
+        CHECK(sink == std::deque<int>(source.begin(), source.end()));
+      }
+      SUBCASE("list")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::list<int>{};
+
+        pipes::for_each(source) >>= pipes::push_back(sink);
+        CHECK(sink == std::list<int>(source.begin(), source.end()));
+      }
+    }
+
+    SUBCASE("push_front")
+    {
+      SUBCASE("deque")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::deque<int>{};
+
+        pipes::for_each(source) >>= pipes::push_front(sink);
+        CHECK(sink == std::deque<int>{3, 2, 1});
+      }
+
+      SUBCASE("return value from pipeline")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::deque<int>{};
+
+        auto& retval = pipes::for_each(source) >>= pipes::push_front(sink);
+        CHECK(&sink == &retval);
+      }
+
+      SUBCASE("list")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::list<int>{};
+
+        pipes::for_each(source) >>= pipes::push_front(sink);
+        CHECK(sink == std::list<int>{3, 2, 1});
+      }
+      SUBCASE("forward_list")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = std::forward_list<int>{};
+
+        pipes::for_each(source) >>= pipes::push_front(sink);
+        CHECK(sink == std::forward_list<int>{3, 2, 1});
+      }
+    }
 
     SUBCASE("discard")
     {
@@ -1319,6 +1395,7 @@ TEST_CASE("test")
     {
       // using a function with the right interface as the sink
     }
+    SUBCASE("reduce") {}
   }
 
   SUBCASE("use as output iterator for std::algorithms")

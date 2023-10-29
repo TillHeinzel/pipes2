@@ -42,12 +42,12 @@ namespace pipes::detail
   auto link(std::ranges::range auto const& r, auto n)
     PIPES_RETURN(link(api::for_each(r), n));
 
-  template<class... Ops>
-  auto link(SourceSection<Ops...> source, PushBackAble auto& p)
+  template<class... Ops, class T>
+  auto link(SourceSection<Ops...> source, std::vector<T>& p)
     PIPES_RETURN(link(source, make_push_back_sink(p)));
 
-  template<class... Ops>
-  auto link(Section<Ops...> n, PushBackAble auto& p)
+  template<class... Ops, class T>
+  auto link(Section<Ops...> n, std::vector<T>& p)
     PIPES_RETURN(link(n, make_push_back_sink(p)));
 } // namespace pipes::detail
 
