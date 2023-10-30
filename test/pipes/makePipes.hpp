@@ -109,6 +109,11 @@ namespace pipes::detail::api
     return make_push_front_sink(r);
   }
 
+  auto to_iterator(std::input_or_output_iterator auto it)
+  {
+    return sink(IteratorSink{it});
+  }
+
   auto discard() { return sink(Discard{}); }
 
   template<class... T>

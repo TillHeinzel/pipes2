@@ -1386,7 +1386,49 @@ TEST_CASE("test")
       SUBCASE("multimap") {}
     }
 
-    SUBCASE("output iterator") {}
+    SUBCASE("to_iterator")
+    {
+      SUBCASE("")
+      {
+        auto const source = std::vector{1, 2, 3};
+        auto sink = std::vector<int>{4, 5, 6};
+
+        pipes::for_each(source) >>= pipes::to_iterator(sink.begin());
+
+        CHECK(sink == source);
+      }
+
+      SUBCASE("")
+      {
+        auto const source = std::vector{1, 2, 3};
+        auto sink = std::vector<int>{};
+
+        pipes::for_each(source) >>=
+          pipes::to_iterator(std::back_inserter(sink));
+
+        CHECK(sink == source);
+      }
+
+      SUBCASE("")
+      {
+        auto const source = std::vector<std::string>{"1", "2", "3"};
+        auto sink = std::vector<std::string>{};
+
+        pipes::for_each(source) >>=
+          pipes::to_iterator(std::back_inserter(sink));
+
+        CHECK(sink == source);
+      }
+      SUBCASE("")
+      {
+        auto const source = std::vector{1, 2, 3};
+        auto sink = std::vector<int>{4, 5, 6};
+
+        auto it = pipes::for_each(source) >>= pipes::to_iterator(sink.begin());
+
+        CHECK(it == sink.end());
+      }
+    }
 
     SUBCASE("set_aggregator") {}
     SUBCASE("map_aggregator") {}
@@ -1397,6 +1439,18 @@ TEST_CASE("test")
       // using a function with the right interface as the sink
     }
     SUBCASE("reduce") {}
+
+    SUBCASE("defaults")
+    {
+      SUBCASE("vector default is push_back")
+      {
+        auto const source = std::vector{1, 2, 3};
+        auto sink = std::vector<int>{};
+
+        pipes::for_each(source) >>= sink;
+        CHECK(sink == source);
+      }
+    }
   }
 
   SUBCASE("use as output iterator for std::algorithms")

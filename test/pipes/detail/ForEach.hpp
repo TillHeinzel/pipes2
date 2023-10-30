@@ -13,7 +13,7 @@ namespace pipes::detail
   {
     R const& v;
 
-    void push(SinkFor<std::ranges::range_value_t<R>> auto sink)
+    void push(SinkFor<std::ranges::range_value_t<R>> auto& sink)
     {
       for(auto const& t : v) { sink.push(t); }
     }
@@ -24,7 +24,7 @@ namespace pipes::detail
   {
     std::tuple<Rs const&...> vs;
 
-    void push(SinkFor<std::tuple<std::ranges::range_value_t<Rs>...>> auto sink)
+    void push(SinkFor<std::tuple<std::ranges::range_value_t<Rs>...>> auto& sink)
     {
       auto doPush = [&sink](auto&&... ts) {
         sink.push(std::tuple<std::ranges::range_value_t<Rs>...>{PIPES_FWD(ts)...});

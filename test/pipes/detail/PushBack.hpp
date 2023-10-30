@@ -16,7 +16,6 @@ namespace pipes::detail
     R& value() { return r; }
   };
 
-
   template<class R, class T>
   concept PushBackAbleFor = requires(R r, T t) { r.push_back(t); };
 
@@ -39,4 +38,19 @@ namespace pipes::detail
     return sink(ReferenceSink{r, f});
   }
 
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class It>
+  struct IteratorSink
+  {
+    It it;
+
+    template<class T>
+      requires(std::output_iterator<It, T>)
+    auto push(T&& t) PIPES_RETURN(*(it++) = PIPES_FWD(t));
+
+    It value() { return it; }
+  };
 } // namespace pipes::detail

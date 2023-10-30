@@ -7,6 +7,10 @@
 
 namespace pipes::detail
 {
+
+  template<class X>
+  concept hasValue = requires(X x) { x.value(); };
+
   template<class F>
   struct FlowNode
   {
@@ -23,20 +27,50 @@ namespace pipes::detail
     template<class... Ts>
       requires(!std::regular_invocable<F, Ts...>)
     auto push(Ts&&... ts) PIPES_RETURN(f(std::tuple{PIPES_FWD(ts)...}));
+
+    decltype(auto) value()
+      requires(hasValue<F>)
+    {
+      return f.value();
+    }
   };
 
-  auto endNode(auto s)
+  template<class S>
+  struct EndNode
   {
-    auto f = [s](auto&&... ts) mutable PIPES_RETURN(s.push(PIPES_FWD(ts)...));
-    return FlowNode{f};
-  }
+    S s;
+
+    auto operator()(auto&&... ts) PIPES_RETURN(s.push(PIPES_FWD(ts)...));
+
+    decltype(auto) value()
+      requires(hasValue<S>)
+    {
+      return s.value();
+    }
+  };
+
+  template<class Next, class Op>
+  struct PieceNode
+  {
+    Next next;
+    Op op;
+
+    auto operator()(auto&&... ts) PIPES_RETURN(op.push(next, PIPES_FWD(ts)...));
+
+    decltype(auto) value()
+      requires(hasValue<Next>)
+    {
+      return next.value();
+    }
+  };
+
+  auto endNode(auto s) { return FlowNode{EndNode{s}}; }
 
   auto pieceNode(auto op, auto next)
   {
-    auto f = [op, next](auto&&... ts) mutable PIPES_RETURN(
-      op.push(next, PIPES_FWD(ts)...));
-
-    return FlowNode{f};
+    return FlowNode{
+      PieceNode{next, op}
+    };
   }
 } // namespace pipes::detail
 
@@ -74,34 +108,38 @@ namespace pipes::detail
 namespace pipes::detail
 {
   template<typename Source, typename Sink>
-  concept ValidConnectedPipeline =
+  concept CanPushRef =
     requires(Source source, Sink sink) { source.push(sink); };
+
+  template<typename Source, typename Sink>
+  concept CanPushMove =
+    requires(Source source, Sink sink) { source.push(std::move(sink)); };
+
+  template<typename Source, typename Sink>
+  concept ValidConnectedPipeline =
+    CanPushRef<Source, Sink> && !CanPushMove<Source, Sink>;
 } // namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<class X>
-  concept hasValue = requires(X x) { x.value(); };
-
-  template<class Source, class Sink, class Returner>
+  template<class Source, class Sink>
     requires(ValidConnectedPipeline<Source, Sink>)
   struct ConnectedPipeline
   {
     Source source;
     Sink sink;
-    Returner returner;
 
     decltype(auto) run() &&
     {
       source.push(sink);
-      if constexpr(hasValue<Returner>)
+      if constexpr(hasValue<Sink>)
       {
-        return returner.value();
+        return sink.value();
       }
     }
   };
 
-  auto connectPipeline(auto p) PIPES_RETURN(
-    ConnectedPipeline{p.source, connect_to_sink(p.pipe, p.sink), p.sink});
+  auto connectPipeline(auto p)
+    PIPES_RETURN(ConnectedPipeline{p.source, connect_to_sink(p.pipe, p.sink)});
 
 } // namespace pipes::detail
