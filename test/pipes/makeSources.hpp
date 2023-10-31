@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ranges>
+
 #include "detail/ForEach.hpp"
 
 namespace pipes::detail::api
@@ -12,6 +14,11 @@ namespace pipes::detail::api
   }
 
   auto generic_source(auto f) { return source(GenericSource{f}); }
+
+  auto adjacent(std::ranges::range auto const& r)
+  {
+    return source(AdjacentSource{r});
+  }
 } // namespace pipes::detail::api
 
 namespace pipes::detail

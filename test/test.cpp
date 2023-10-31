@@ -1097,10 +1097,71 @@ TEST_CASE("test")
       }
     }
 
+    SUBCASE("Adjacent")
+    {
+      SUBCASE("")
+      {
+        auto source = std::vector<int>{1};
+
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        pipes::adjacent(source) >>= pipes::push_back(target);
+
+        CHECK(target == std::vector<std::tuple<int, int>>{});
+      }
+
+      SUBCASE("")
+      {
+        auto source = std::vector<int>{1, 2};
+
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        pipes::adjacent(source) >>= pipes::push_back(target);
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 2}
+        });
+      }
+      SUBCASE("")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        pipes::adjacent(source) >>= pipes::push_back(target);
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 2},
+                {2, 3}
+        });
+      }
+      SUBCASE("")
+      {
+        auto source = std::map<int, int>{
+          {1, 2},
+          {2, 4},
+          {3, 6}
+        };
+
+        auto target =
+          std::vector<std::tuple<std::tuple<int, int>, std::tuple<int, int>>>{};
+
+        pipes::adjacent(source) >>= pipes::push_back(target);
+
+        CHECK(target
+              == std::vector<
+                std::tuple<std::tuple<int, int>, std::tuple<int, int>>>{
+                {{1, 2}, {2, 4}},
+                {{2, 4}, {3, 6}}
+        });
+      }
+    }
+
     SUBCASE("from istream") {}
     SUBCASE("combinations with self") {}
     SUBCASE("cartesian product") {}
-    SUBCASE("Adjacent") {}
     SUBCASE("interleave")
     {
       // todo: should just mix the input sources
@@ -1383,8 +1444,8 @@ TEST_CASE("test")
 
         pipes::for_each(source) >>= pipes::insert_or_assign(sink);
 
-        // uses insert_or_assign, so the last element pushed in for a particular
-        // key is pushed
+        // uses insert_or_assign, so the last element pushed in for a
+        // particular key is pushed
         CHECK(sink
               == std::map<int, std::string>{
                 {1, "1"},
@@ -1584,8 +1645,8 @@ TEST_CASE("test")
 
         pipes::for_each(source) >>= sink;
 
-        // uses insert_or_assign, so the last element pushed in for a particular
-        // key is pushed
+        // uses insert_or_assign, so the last element pushed in for a
+        // particular key is pushed
         CHECK(sink
               == std::map<int, std::string>{
                 {1, "1"},
