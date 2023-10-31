@@ -1,7 +1,7 @@
 #pragma once
 
-#include "detail/PushBack.hpp"
 #include "detail/Discard.hpp"
+#include "detail/PushBack.hpp"
 
 namespace pipes::detail::api
 {
@@ -37,6 +37,8 @@ namespace pipes::detail::api
   {
     return sink(TypedDiscard<T...>{});
   }
+
+  auto generic_sink(auto f) { return sink(GenericSink{f}); }
 } // namespace pipes::detail::api
 
 namespace pipes::detail

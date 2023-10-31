@@ -1470,7 +1470,13 @@ TEST_CASE("test")
 
     SUBCASE("generic sink ")
     {
-      // using a function with the right interface as the sink
+      const auto source = std::vector{1, 2, 3};
+      auto sink = std::vector<int>{};
+
+      pipes::for_each(source) >>=
+        pipes::generic_sink([&sink](int i) { sink.push_back(i); });
+
+      CHECK(sink == source);
     }
     SUBCASE("reduce") {}
 

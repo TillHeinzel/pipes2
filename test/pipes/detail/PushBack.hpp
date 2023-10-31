@@ -46,3 +46,14 @@ namespace pipes::detail
     It value() { return it; }
   };
 } // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class F>
+  struct GenericSink
+  {
+    F f;
+
+    auto push(auto&& t)PIPES_RETURN(f(PIPES_FWD(t)));
+  };
+}
