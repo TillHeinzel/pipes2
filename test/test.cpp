@@ -1230,7 +1230,15 @@ TEST_CASE("test")
 
     SUBCASE("generic source")
     {
-      // has a functor that can receive a sink to push shit to
+      auto source = std::vector<int>{1, 2, 3};
+
+      auto target = std::vector<int>{};
+
+      pipes::generic_source([&source](auto& sink)
+                            { sink.push(source.front()); }) >>=
+        pipes::push_back(target);
+
+      CHECK(target == std::vector{1});
     }
   }
 
@@ -1550,6 +1558,7 @@ TEST_CASE("test")
 
       CHECK(sink == source);
     }
+
     SUBCASE("reduce") {}
 
     SUBCASE("defaults")
@@ -1561,6 +1570,28 @@ TEST_CASE("test")
 
         pipes::for_each(source) >>= sink;
         CHECK(sink == source);
+      }
+
+      SUBCASE("map default is insert_or_assign")
+      {
+        auto source = std::vector<std::pair<int, std::string>>{
+          {1, "1"},
+          {2, "2"},
+          {3, "3"},
+          {3, "4"}
+        };
+        auto sink = std::map<int, std::string>{};
+
+        pipes::for_each(source) >>= sink;
+
+        // uses insert_or_assign, so the last element pushed in for a particular
+        // key is pushed
+        CHECK(sink
+              == std::map<int, std::string>{
+                {1, "1"},
+                {2, "2"},
+                {3, "4"}
+        });
       }
     }
   }

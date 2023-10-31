@@ -15,7 +15,10 @@ namespace pipes::detail
 
     void push(SinkFor<std::ranges::range_value_t<R>> auto& sink)
     {
-      for(auto const& t : v) { sink.push(t); }
+      for(auto const& t : v)
+      {
+        sink.push(t);
+      }
     }
   };
 
@@ -27,10 +30,22 @@ namespace pipes::detail
     void push(SinkFor<std::tuple<std::ranges::range_value_t<Rs>...>> auto& sink)
     {
       auto doPush = [&sink](auto&&... ts) {
-        sink.push(std::tuple<std::ranges::range_value_t<Rs>...>{PIPES_FWD(ts)...});
+        sink.push(
+          std::tuple<std::ranges::range_value_t<Rs>...>{PIPES_FWD(ts)...});
       };
 
       parallelIterate(vs, doPush);
     }
+  };
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class F>
+  struct GenericSource
+  {
+    F f;
+
+    auto push(auto& sink) PIPES_RETURN(f(sink));
   };
 } // namespace pipes::detail

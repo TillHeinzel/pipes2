@@ -83,4 +83,10 @@ namespace pipes::detail
   {
     return api::push_back(r);
   }
+
+  template<class K, class V>
+  auto defaultSink(std::map<K, V>& m)
+  {
+    return api::insert_or_assign(m);
+  }
 } // namespace pipes::detail

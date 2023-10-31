@@ -10,6 +10,8 @@ namespace pipes::detail::api
   {
     return source(MultiForEach{std::tie(vs...)});
   }
+
+  auto generic_source(auto f) { return source(GenericSource{f}); }
 } // namespace pipes::detail::api
 
 namespace pipes::detail
