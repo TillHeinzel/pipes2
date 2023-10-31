@@ -1361,20 +1361,6 @@ TEST_CASE("test")
       // todo: typed with types that can be converted to?
     }
 
-    SUBCASE("override")
-    {
-      SUBCASE("iterator-pair (begin, end)") {}
-
-      SUBCASE("vector") {}
-
-      SUBCASE("map")
-      { // insert_or_assign
-      }
-      SUBCASE("deque") {}
-      SUBCASE("forward list") {}
-      SUBCASE("list") {}
-    }
-
     SUBCASE("insert_or_assign")
     {
       SUBCASE("map")
