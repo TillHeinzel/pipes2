@@ -116,6 +116,13 @@ namespace pipes::detail::api
     return make_insert_sink(r);
   }
 
+  template<class R>
+    requires(InsertOrAssignAbleFor<R, typename R::value_type>)
+  auto insert_or_assign(R& r)
+  {
+    return make_insert_or_assign_sink(r);
+  }
+
   auto to_iterator(std::input_or_output_iterator auto it)
   {
     return sink(IteratorSink{it});

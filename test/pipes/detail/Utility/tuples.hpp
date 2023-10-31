@@ -1,7 +1,7 @@
 #pragma once
 
-#include <tuple>
 #include <ranges>
+#include <tuple>
 
 namespace pipes::detail
 {
@@ -73,9 +73,8 @@ namespace pipes::detail
   template<class... Its, class... Ends>
   void parallelIterate(std::tuple<IteratorPair<Its, Ends>...> itss, auto f)
   {
-    auto ff = [f](auto&&... itss) {
-      parallelIterate_impl(f, PIPES_FWD(itss)...);
-    };
+    auto ff = [f](auto&&... itss)
+    { parallelIterate_impl(f, PIPES_FWD(itss)...); };
     std::apply(ff, itss);
   }
 
@@ -92,7 +91,8 @@ namespace pipes::detail
   template<class F, class... Ts>
   void callFirstSuccess(std::tuple<Ts...> cases, F f)
   {
-    auto ff = [f](auto... ts) {
+    auto ff = [f](auto... ts)
+    {
       // short-circuits. after success, no more calls to f
       return (f(ts) || ...);
     };
@@ -107,9 +107,7 @@ namespace pipes::detail
   auto tuple_zip_impl(Tup1 tup1, Tup2 tup2, std::index_sequence<Is...>)
   {
     return std::make_tuple(
-      std::tuple{std::get<Is>(tup1), std::get<Is>(tup2)}
-      ...
-    );
+      std::tuple{std::get<Is>(tup1), std::get<Is>(tup2)}...);
   }
 
   template<class Tup1, class Tup2>
@@ -121,4 +119,40 @@ namespace pipes::detail
                           tup2,
                           std::make_index_sequence<std::tuple_size_v<Tup1>>());
   }
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class X>
+  struct is_tuple : std::false_type
+  {
+  };
+
+  template<class... Ts>
+  struct is_tuple<std::tuple<Ts...>> : std::true_type
+  {
+  };
+
+  template<class Tup>
+  constexpr static bool is_tuple_v = is_tuple<Tup>::value;
+
+  template<class X>
+  struct is_pair : std::false_type
+  {
+  };
+
+  template<class T1, class T2>
+  struct is_pair<std::pair<T1, T2>> : std::true_type
+  {
+  };
+
+  template<class Tup>
+  constexpr static bool is_pair_v = is_pair<Tup>::value;
+
+  template<class Tup>
+  concept Tuple_like = is_tuple_v<Tup> || is_pair_v<Tup>;
+
+  template<class Tup>
+  concept Pair_like =
+    is_pair_v<Tup> || (is_tuple_v<Tup> && std::tuple_size_v<Tup> == 2);
 } // namespace pipes::detail

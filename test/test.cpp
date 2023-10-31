@@ -17,27 +17,26 @@ concept Streamable = requires(std::ostream& os, T value) {
   } -> std::convertible_to<std::ostream&>;
 };
 
-template<typename... Ts, size_t... Is>
+template<class Tuple, size_t... Is>
 std::ostream& println_tuple_impl(std::ostream& os,
-                                 std::tuple<Ts...> tuple,
+                                 Tuple tuple,
                                  std::index_sequence<Is...>)
 {
-  static_assert(sizeof...(Is) == sizeof...(Ts),
-                "Indices must have same number of elements as tuple types!");
-  static_assert(sizeof...(Ts) > 0, "Cannot insert empty tuple into stream.");
-  static constexpr auto last =
-    sizeof...(Ts) - 1; // assuming index sequence 0,...,N-1
-
-  return ((os << std::get<Is>(tuple) << (Is != last ? "," : "")), ...);
+  return ((os << std::get<Is>(tuple)
+              << (Is != std::tuple_size_v<Tuple> - 1 ? "," : "")),
+          ...);
 }
 
 namespace std
 {
-  template<class... Ts>
-  std::ostream& operator<<(std::ostream& stream, std::tuple<Ts...> const& t)
+  template<pipes::detail::Tuple_like Tup>
+  std::ostream& operator<<(std::ostream& stream, Tup const& t)
   {
     stream << "<";
-    println_tuple_impl(stream, t, std::index_sequence_for<Ts...>{});
+    println_tuple_impl(
+      stream,
+      t,
+      std::make_index_sequence<std::tuple_size_v<Tup>>{});
     stream << ">";
     return stream;
   }
@@ -1377,7 +1376,30 @@ TEST_CASE("test")
       SUBCASE("list") {}
     }
 
-    SUBCASE("try_insert") {}
+    SUBCASE("insert_or_assign")
+    {
+      SUBCASE("map")
+      {
+        auto source = std::vector<std::pair<int, std::string>>{
+          {1, "1"},
+          {2, "2"},
+          {3, "3"},
+          {3, "4"}
+        };
+        auto sink = std::map<int, std::string>{};
+
+        pipes::for_each(source) >>= pipes::insert_or_assign(sink);
+
+        // uses insert_or_assign, so the last element pushed in for a particular
+        // key is pushed
+        CHECK(sink
+              == std::map<int, std::string>{
+                {1, "1"},
+                {2, "2"},
+                {3, "4"}
+        });
+      }
+    }
 
     SUBCASE("insert")
     {

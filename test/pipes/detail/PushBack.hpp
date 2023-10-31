@@ -49,6 +49,19 @@ namespace pipes::detail
     return sink(ReferenceSink{r, f});
   }
 
+  template<class R, class T>
+  concept InsertOrAssignAbleFor = Pair_like<T> && requires(R r, T t) {
+    r.insert_or_assign(std::get<0>(t), std::get<1>(t));
+  };
+
+  template<class R>
+    requires(InsertOrAssignAbleFor<R, typename R::value_type>)
+  auto make_insert_or_assign_sink(R& r)
+  {
+    auto f = [](auto& r, Pair_like auto&& t) PIPES_RETURN(
+      r.insert_or_assign(std::get<0>(t), PIPES_FWD(std::get<1>(t))));
+    return sink(ReferenceSink{r, f});
+  }
 
 } // namespace pipes::detail
 
