@@ -109,6 +109,13 @@ namespace pipes::detail::api
     return make_push_front_sink(r);
   }
 
+  template<class R>
+    requires(InsertableFor<R, typename R::value_type>)
+  auto insert(R& r)
+  {
+    return make_insert_sink(r);
+  }
+
   auto to_iterator(std::input_or_output_iterator auto it)
   {
     return sink(IteratorSink{it});

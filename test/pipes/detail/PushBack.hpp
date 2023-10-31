@@ -38,6 +38,18 @@ namespace pipes::detail
     return sink(ReferenceSink{r, f});
   }
 
+  template<class R, class T>
+  concept InsertableFor = requires(R r, T t) { r.insert(t); };
+
+  template<class R>
+    requires(InsertableFor<R, typename R::value_type>)
+  auto make_insert_sink(R& r)
+  {
+    auto f = [](auto& r, auto&& t) PIPES_RETURN(r.insert(PIPES_FWD(t)));
+    return sink(ReferenceSink{r, f});
+  }
+
+
 } // namespace pipes::detail
 
 namespace pipes::detail
