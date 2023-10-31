@@ -39,6 +39,41 @@ namespace pipes::detail::api
   }
 
   auto generic_sink(auto f) { return sink(GenericSink{f}); }
+
+  template<class K, class V>
+  auto map_aggregator(std::map<K, V>& m, auto f)
+  {
+    auto ff = [f](auto& m, auto&& t)
+    {
+      auto [it, didInsert] = m.insert(PIPES_FWD(t));
+
+      if(!didInsert)
+      {
+        it->second = f(it->second, PIPES_FWD(t).second);
+      }
+    };
+
+    return sink(ReferenceSink{m, ff});
+  }
+
+  auto set_aggregator(std::set<int>& s, auto f)
+  {
+    auto ff = [f](auto& r, auto&& t)
+    {
+      auto recur = [f, &r](auto&& t, auto&& recur) -> void
+      {
+        auto [it, didInsert] = r.insert(PIPES_FWD(t));
+        if(!didInsert)
+        {
+          recur(f(r.extract(it).value(), PIPES_FWD(t)), recur);
+        }
+      };
+
+      recur(PIPES_FWD(t), recur);
+    };
+
+    return sink(ReferenceSink{s, ff});
+  }
 } // namespace pipes::detail::api
 
 namespace pipes::detail

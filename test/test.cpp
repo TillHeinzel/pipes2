@@ -1464,8 +1464,80 @@ TEST_CASE("test")
       }
     }
 
-    SUBCASE("set_aggregator") {}
-    SUBCASE("map_aggregator") {}
+    SUBCASE("set_aggregator")
+    {
+      SUBCASE("")
+      {
+        auto const source = std::vector<int>{1, 2};
+        auto sink = std::set<int>{};
+
+        pipes::for_each(source) >>= pipes::set_aggregator(sink, std::plus{});
+
+        CHECK(sink == std::set<int>{1, 2});
+      }
+
+      SUBCASE("")
+      {
+        auto const source = std::vector<int>{1, 3};
+        auto sink = std::set<int>{1};
+
+        pipes::for_each(source) >>= pipes::set_aggregator(sink, std::plus{});
+
+        CHECK(sink == std::set<int>{1 + 1, 3});
+      }
+
+      SUBCASE("")
+      {
+        auto const source = std::vector<int>{1};
+        auto sink = std::set<int>{1, 2};
+
+        pipes::for_each(source) >>= pipes::set_aggregator(sink, std::plus{});
+
+        CHECK(sink == std::set<int>{1 + 1 + 2});
+      }
+    }
+    SUBCASE("map_aggregator")
+    {
+      SUBCASE("")
+      {
+        auto const source = std::vector<std::pair<int, int>>{
+          {1, 1},
+          {2, 2}
+        };
+        auto sink = std::map<int, int>{};
+
+        pipes::for_each(source) >>= pipes::map_aggregator(sink, std::plus{});
+
+        CHECK(sink
+              == std::map<int, int>{
+                {1, 1},
+                {2, 2}
+        });
+      }
+
+      SUBCASE("")
+      {
+        auto const source = std::vector<std::pair<int, int>>{
+          {1, 1},
+          {2, 5},
+          {3, 3},
+          {3, 4}
+        };
+        auto sink = std::map<int, int>{
+          {2, 2}
+        };
+
+        pipes::for_each(source) >>= pipes::map_aggregator(sink, std::plus{});
+
+        CHECK(sink
+              == std::map<int, int>{
+                {1,     1},
+                {2, 2 + 5},
+                {3, 3 + 4}
+        });
+      }
+    }
+
     SUBCASE("to ostream") {}
 
     SUBCASE("generic sink ")

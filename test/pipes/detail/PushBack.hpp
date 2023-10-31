@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+#include <iostream>
+
 #include "GenericImplementation/impl.hpp"
 
 namespace pipes::detail
@@ -54,6 +56,6 @@ namespace pipes::detail
   {
     F f;
 
-    auto push(auto&& t)PIPES_RETURN(f(PIPES_FWD(t)));
+    auto push(auto&& t) PIPES_RETURN(f(PIPES_FWD(t)));
   };
-}
+} // namespace pipes::detail
