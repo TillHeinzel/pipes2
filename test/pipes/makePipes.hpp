@@ -1,15 +1,10 @@
 #pragma once
 
-#include <forward_list>
-
-#include "detail/Discard.hpp"
 #include "detail/DropTake.hpp"
 #include "detail/Filter.hpp"
 #include "detail/Flatten.hpp"
-#include "detail/ForEach.hpp"
 #include "detail/Fork.hpp"
 #include "detail/Partition.hpp"
-#include "detail/PushBack.hpp"
 #include "detail/Reduce_each.hpp"
 #include "detail/Stride.hpp"
 #include "detail/Switch.hpp"
@@ -17,17 +12,7 @@
 #include "detail/Transform.hpp"
 #include "detail/Unzip.hpp"
 
-#include "defaults.hpp"
-
-namespace pipes::detail::api
-{
-  auto for_each(std::ranges::range auto const& r) { return source(ForEach{r}); }
-
-  auto zip(std::ranges::range auto const&... vs)
-  {
-    return source(MultiForEach{std::tie(vs...)});
-  }
-} // namespace pipes::detail::api
+#include "useAsSink.hpp"
 
 namespace pipes::detail::api
 {
@@ -90,49 +75,5 @@ namespace pipes::detail::api
   auto switch_(CaseSink<Fs, Ss>... cs)
   {
     return sink(Switch{std::tuple{cs...}});
-  }
-} // namespace pipes::detail::api
-
-namespace pipes::detail::api
-{
-  template<class R>
-    requires(PushBackAbleFor<R, typename R::value_type>)
-  auto push_back(R& r)
-  {
-    return make_push_back_sink(r);
-  }
-
-  template<class R>
-    requires(PushFrontAbleFor<R, typename R::value_type>)
-  auto push_front(R& r)
-  {
-    return make_push_front_sink(r);
-  }
-
-  template<class R>
-    requires(InsertableFor<R, typename R::value_type>)
-  auto insert(R& r)
-  {
-    return make_insert_sink(r);
-  }
-
-  template<class R>
-    requires(InsertOrAssignAbleFor<R, typename R::value_type>)
-  auto insert_or_assign(R& r)
-  {
-    return make_insert_or_assign_sink(r);
-  }
-
-  auto to_iterator(std::input_or_output_iterator auto it)
-  {
-    return sink(IteratorSink{it});
-  }
-
-  auto discard() { return sink(Discard{}); }
-
-  template<class... T>
-  auto discard()
-  {
-    return sink(TypedDiscard<T...>{});
   }
 } // namespace pipes::detail::api

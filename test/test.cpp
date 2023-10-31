@@ -1,6 +1,5 @@
 #include "doctest.h"
 
-#include "pipes/pipes.hpp"
 #include <deque>
 #include <forward_list>
 #include <iostream>
@@ -9,6 +8,8 @@
 #include <set>
 #include <string>
 #include <vector>
+
+#include "pipes/pipes.hpp"
 
 template<typename T>
 concept Streamable = requires(std::ostream& os, T value) {
@@ -33,10 +34,9 @@ namespace std
   std::ostream& operator<<(std::ostream& stream, Tup const& t)
   {
     stream << "<";
-    println_tuple_impl(
-      stream,
-      t,
-      std::make_index_sequence<std::tuple_size_v<Tup>>{});
+    println_tuple_impl(stream,
+                       t,
+                       std::make_index_sequence<std::tuple_size_v<Tup>>{});
     stream << ">";
     return stream;
   }
@@ -1365,7 +1365,6 @@ TEST_CASE("test")
     {
       SUBCASE("iterator-pair (begin, end)") {}
 
-      SUBCASE("array") {}
       SUBCASE("vector") {}
 
       SUBCASE("map")

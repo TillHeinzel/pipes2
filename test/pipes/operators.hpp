@@ -6,7 +6,7 @@
 
 #include "detail/Switch.hpp"
 
-#include "defaults.hpp"
+#include "useAsSink.hpp"
 
 namespace pipes::detail
 {

@@ -2,36 +2,20 @@
 
 #include "detail/Utility/functional.hpp"
 
-#include "detail/ForEach.hpp"
-#include "detail/PushBack.hpp"
+#include "detail/GenericImplementation/impl.hpp"
+
+#include "makeSinks.hpp"
+#include "makeSources.hpp"
 
 namespace pipes::detail
 {
-  auto defaultSource(std::ranges::range auto const& r)
-  {
-    return source(ForEach{r});
-  }
 
   template<class S>
   concept HasDefaultSource = requires(S const& s) { defaultSource(s); };
-} // namespace pipes::detail
-
-namespace pipes::detail
-{
-
-  template<class T>
-  auto defaultSink(std::vector<T>& v)
-  {
-    return make_push_back_sink(v);
-  }
 
   template<class S>
   concept HasDefaultSink = requires(S& s) { defaultSink(s); };
 
-} // namespace pipes::detail
-
-namespace pipes::detail
-{
   template<class... Ts>
   auto asSinkSection(SinkSection<Ts...> s)
   {
@@ -49,5 +33,4 @@ namespace pipes::detail
     { return connect_to_sink(s.pipe, s.finalSink); };
     return connect(asSinkSection(PIPES_FWD(s)));
   }
-
 } // namespace pipes::detail
