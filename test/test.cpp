@@ -1011,6 +1011,266 @@ TEST_CASE("test")
       // todo: need to be able to define the chunk-type, e.g. std::vector or
       // std::map, with certain defaults possible
     }
+
+    SUBCASE("add all")
+    {
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{};
+        auto const source2 = std::vector<int>{};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target == std::vector<std::tuple<int, int>>{});
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto const source2 = std::vector<int>{};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target == std::vector<std::tuple<int, int>>{});
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{};
+        auto const source2 = std::vector<int>{1};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target == std::vector<std::tuple<int, int>>{});
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto const source2 = std::vector<int>{4};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 4}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto const source2 = std::vector<int>{4, 5};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 4},
+                {1, 5}
+        });
+      }
+
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<std::string>{"1"};
+        auto const source2 = std::vector<int>{4, 5};
+        auto target = std::vector<std::tuple<std::string, int>>{};
+
+        source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<std::string, int>>{
+                {"1", 4},
+                {"1", 5}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<std::string>{"1"};
+        auto const source2 = std::list<std::string>{"4", "5"};
+        auto target = std::vector<std::tuple<std::string, std::string>>{};
+
+        source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<std::string, std::string>>{
+                {"1", "4"},
+                {"1", "5"}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1, 2};
+        auto const source2 = std::vector<int>{3, 4};
+        auto const source3 = std::vector<int>{5, 6};
+        auto target = std::vector<std::tuple<int, int, int>>{};
+
+        source1 >>= pipes::add_all(source2) >>= pipes::add_all(source3) >>=
+          target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int, int>>{
+                {1, 3, 5},
+                {1, 3, 6},
+                {1, 4, 5},
+                {1, 4, 6},
+                {2, 3, 5},
+                {2, 3, 6},
+                {2, 4, 5},
+                {2, 4, 6},
+        });
+      }
+    }
+
+    SUBCASE("add each")
+    {
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{};
+        auto const source2 = std::vector<int>{};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target == std::vector<std::tuple<int, int>>{});
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto const source2 = std::vector<int>{};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target == std::vector<std::tuple<int, int>>{});
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{};
+        auto const source2 = std::vector<int>{1};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target == std::vector<std::tuple<int, int>>{});
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto const source2 = std::vector<int>{3};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 3}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1, 2};
+        auto const source2 = std::vector<int>{3};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 3}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto const source2 = std::vector<int>{3, 4};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 3}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1, 2};
+        auto const source2 = std::vector<int>{3, 4};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 3},
+                {2, 4},
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1, 2};
+        auto const source2 = std::list<int>{3, 4};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 3},
+                {2, 4},
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<std::string>{"1", "2"};
+        auto const source2 = std::vector<int>{3, 4};
+        auto target = std::vector<std::tuple<std::string, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<std::string, int>>{
+                {"1", 3},
+                {"2", 4},
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1, 2};
+        auto const source2 = std::list<int>{3, 4};
+        auto const source3 = std::list<int>{5, 6};
+        auto target = std::vector<std::tuple<int, int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= pipes::add_each(source3) >>=
+          target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int, int>>{
+                {1, 3, 5},
+                {2, 4, 6},
+        });
+      }
+
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1, 2, 2, 2, 2};
+        auto const source2 = std::list<int>{3, 4};
+        auto const source3 = std::list<int>{5, 6, 6, 6};
+        auto target = std::vector<std::tuple<int, int, int>>{};
+
+        source1 >>= pipes::add_each(source2) >>= pipes::add_each(source3) >>=
+          target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int, int>>{
+                {1, 3, 5},
+                {2, 4, 6},
+        });
+      }
+    }
   }
 
   SUBCASE("sources")
@@ -1159,9 +1419,159 @@ TEST_CASE("test")
       }
     }
 
-    SUBCASE("from istream") {}
+    SUBCASE("cartesian product")
+    {
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{1, 2};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1) >>=
+          pipes::transform([](int i) { return std::to_string(i); }) >>=
+          pipes::push_back(results);
+
+        CHECK(results == std::vector<std::string>{"1", "2"});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{};
+        auto const inputs2 = std::vector<std::string>{};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2) >>=
+          pipes::transform([](int i, std::string const& s)
+                           { return std::to_string(i) + '-' + s; }) >>=
+          pipes::push_back(results);
+
+        CHECK(results == std::vector<std::string>{});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{1};
+        auto const inputs2 = std::vector<std::string>{};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2) >>=
+          pipes::transform([](int i, std::string const& s)
+                           { return std::to_string(i) + '-' + s; }) >>=
+          pipes::push_back(results);
+
+        CHECK(results == std::vector<std::string>{});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{};
+        auto const inputs2 = std::vector<std::string>{"up"};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2) >>=
+          pipes::transform([](int i, std::string const& s)
+                           { return std::to_string(i) + '-' + s; }) >>=
+          pipes::push_back(results);
+
+        CHECK(results == std::vector<std::string>{});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{1};
+        auto const inputs2 = std::vector<std::string>{"up"};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2) >>=
+          pipes::transform([](int i, std::string const& s)
+                           { return std::to_string(i) + '-' + s; }) >>=
+          pipes::push_back(results);
+
+        CHECK(results == std::vector<std::string>{"1-up"});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{1, 2};
+        auto const inputs2 = std::vector<std::string>{"up"};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2) >>=
+          pipes::transform([](int i, std::string const& s)
+                           { return std::to_string(i) + '-' + s; }) >>=
+          pipes::push_back(results);
+
+        CHECK(results == std::vector<std::string>{"1-up", "2-up"});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{1, 2};
+        auto const inputs2 = std::vector<std::string>{"up", "down"};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2) >>=
+          pipes::transform([](int i, std::string const& s)
+                           { return std::to_string(i) + '-' + s; }) >>=
+          pipes::push_back(results);
+
+        CHECK(results
+              == std::vector<std::string>{"1-up", "1-down", "2-up", "2-down"});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::map<int, std::string>{
+          {5,   "up"},
+          {7, "down"}
+        };
+        auto const inputs2 = std::vector<int>{2, 3};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2) >>= pipes::transform(
+          [](auto p, int i) {
+            return std::to_string(i * p.first) + '-' + p.second;
+          }) >>= pipes::push_back(results);
+
+        CHECK(
+          results
+          == std::vector<std::string>{"10-up", "15-up", "14-down", "21-down"});
+      }
+
+      SUBCASE("")
+      {
+        auto const inputs1 = std::vector<int>{2, 3};
+        auto const inputs2 = std::vector<std::string>{"up", "down"};
+        auto const inputs3 = std::vector<int>{5, 7};
+
+        auto results = std::vector<std::string>{};
+
+        pipes::cartesian_product(inputs1, inputs2, inputs3) >>=
+          pipes::transform([](int i, std::string const& s, int j)
+                           { return std::to_string(i * j) + '-' + s; }) >>=
+          pipes::push_back(results);
+
+        CHECK(results
+              == std::vector<std::string>{"10-up",
+                                          "14-up",
+                                          "10-down",
+                                          "14-down",
+                                          "15-up",
+                                          "21-up",
+                                          "15-down",
+                                          "21-down"});
+      }
+    }
+
     SUBCASE("combinations with self") {}
-    SUBCASE("cartesian product") {}
+
     SUBCASE("interleave")
     {
       // todo: should just mix the input sources
@@ -1301,6 +1711,8 @@ TEST_CASE("test")
 
       CHECK(target == std::vector{1});
     }
+
+    SUBCASE("from istream") {}
   }
 
   SUBCASE("sinks")
@@ -1674,6 +2086,8 @@ TEST_CASE("test")
   //
   // todo: big types with lots of data (do not have to copy everything all the
   // time)
+  //
+  // todo: streams
   //
   // todo: generators and take-from for generator with effectively infinite
   // sources

@@ -156,3 +156,18 @@ namespace pipes::detail
   concept Pair_like =
     is_pair_v<Tup> || (is_tuple_v<Tup> && std::tuple_size_v<Tup> == 2);
 } // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<class... Ts>
+  bool any_of(std::tuple<Ts...> ts)
+  {
+    return std::apply([](auto... ts) { return (ts || ...); }, ts);
+  }
+
+  template<class F, class... Ts>
+  bool any_of(std::tuple<Ts...> ts, F f)
+  {
+    return std::apply([](auto... ts) { return (ts || ...); }, transform(ts, f));
+  }
+} // namespace pipes::detail

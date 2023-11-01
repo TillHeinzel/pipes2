@@ -1,7 +1,10 @@
 #pragma once
 
 #include <ranges>
+#include <tuple>
 
+#include "Utility/FWD.hpp"
+#include "Utility/functional.hpp"
 #include "Utility/tuples.hpp"
 
 #include "GenericImplementation/impl.hpp"
@@ -21,22 +24,6 @@ namespace pipes::detail
       }
     }
   };
-
-  template<std::ranges::range... Rs>
-  struct MultiForEach
-  {
-    std::tuple<Rs const&...> vs;
-
-    void push(SinkFor<std::tuple<std::ranges::range_value_t<Rs>...>> auto& sink)
-    {
-      auto doPush = [&sink](auto&&... ts) {
-        sink.push(
-          std::tuple<std::ranges::range_value_t<Rs>...>{PIPES_FWD(ts)...});
-      };
-
-      parallelIterate(vs, doPush);
-    }
-  };
 } // namespace pipes::detail
 
 namespace pipes::detail
@@ -52,12 +39,13 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<class R>
+  template<std::ranges::range R>
   struct AdjacentSource
   {
     R const& r;
 
-    auto push(auto& sink)
+    auto push(SinkFor<std::ranges::range_value_t<R>,
+                      std::ranges::range_value_t<R>> auto& sink)
     {
       if(r.begin() == r.end()) return;
 
@@ -69,5 +57,44 @@ namespace pipes::detail
         sink.push(*it1++, *it2++);
       }
     };
+  };
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<std::ranges::range R>
+  struct AddAll
+  {
+    R const& r;
+
+    template<class... Ts>
+    auto push(SinkFor<Ts..., std::ranges::range_value_t<R>> auto& sink,
+              Ts&&... ts)
+    {
+      for(const auto& x : r)
+      {
+        sink.push(PIPES_FWD(ts)..., x);
+      }
+    }
+  };
+
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<std::ranges::range R>
+  struct AddEach
+  {
+    R const& r;
+
+    decltype(r.begin()) it = r.begin();
+
+    template<class... Ts>
+    auto push(SinkFor<Ts..., std::ranges::range_value_t<R>> auto& sink,
+              Ts&&... ts)
+    {
+      if(it == r.end()) return;
+      sink.push(PIPES_FWD(ts)..., *it++);
+    }
   };
 } // namespace pipes::detail
