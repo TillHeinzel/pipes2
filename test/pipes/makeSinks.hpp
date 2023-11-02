@@ -30,7 +30,7 @@ namespace pipes::detail::api
     return sink(IteratorSink{it});
   }
 
-  auto discard() { return sink(Discard{}); }
+  inline auto discard() { return sink(Discard{}); }
 
   template<class... T>
   auto discard()

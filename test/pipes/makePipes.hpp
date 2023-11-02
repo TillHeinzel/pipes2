@@ -24,7 +24,7 @@ namespace pipes::detail::api
   {
     return transform(reduce_f(f, initial));
   };
-
+  
   auto reduce_each(auto f) { return transform(reduce_f(f)); };
 
   auto drop_until(auto f) { return filter(fulfilledOnce(f)); }
@@ -44,7 +44,7 @@ namespace pipes::detail::api
     return pipe(Filter{stride_f(step, offset)});
   }
 
-  auto flatten() { return pipe(Flatten{}); }
+  inline auto flatten() { return pipe(Flatten{}); }
 
   auto tee(UsableAsSink auto&& v) { return pipe(Tee{useAsSink(PIPES_FWD(v))}); }
 

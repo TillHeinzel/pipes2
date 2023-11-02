@@ -140,3 +140,13 @@ namespace pipes::detail
     }
   };
 } // namespace pipes::detail
+
+namespace pipes::detail
+{
+  struct Combinations
+  {
+    std::vector<int> r;
+
+    void push(SinkFor<int, int> auto& sink) {}
+  };
+} // namespace pipes::detail

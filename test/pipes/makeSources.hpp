@@ -29,6 +29,15 @@ namespace pipes::detail::api
             + pipe(AddAll{ViewWrapper{PIPES_FWD(rs)}}));
   }
 
+  inline auto combinations(std::vector<int>&& r)
+  {
+    return source(Combinations(PIPES_FWD(r)));
+  }
+
+} // namespace pipes::detail::api
+
+namespace pipes::detail::api
+{
   auto generic_source(auto f) { return source(GenericSource{f}); }
 } // namespace pipes::detail::api
 
