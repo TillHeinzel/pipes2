@@ -5,24 +5,24 @@
 
 namespace pipes::detail::api
 {
-  auto push_back(RangeAbleTo<decltype(push_back_f)> auto& r)
+  auto push_back(RangeAbleTo<decltype(push_back_f)> auto&& r)
   {
-    return sink(ReferenceSink{r, push_back_f});
+    return sink(ValueSink{PIPES_FWD(r), push_back_f});
   }
 
-  auto push_front(RangeAbleTo<decltype(push_front_f)> auto& r)
+  auto push_front(RangeAbleTo<decltype(push_front_f)> auto&& r)
   {
-    return sink(ReferenceSink{r, push_front_f});
+    return sink(ValueSink{PIPES_FWD(r), push_front_f});
   }
 
-  auto insert(RangeAbleTo<decltype(insert_f)> auto& r)
+  auto insert(RangeAbleTo<decltype(insert_f)> auto&& r)
   {
-    return sink(ReferenceSink{r, insert_f});
+    return sink(ValueSink{PIPES_FWD(r), insert_f});
   }
 
-  auto insert_or_assign(RangeAbleTo<decltype(insert_or_assign_f)> auto& r)
+  auto insert_or_assign(RangeAbleTo<decltype(insert_or_assign_f)> auto&& r)
   {
-    return sink(ReferenceSink{r, insert_or_assign_f});
+    return sink(ValueSink{PIPES_FWD(r), insert_or_assign_f});
   }
 
   auto to_iterator(std::input_or_output_iterator auto it)
@@ -53,7 +53,7 @@ namespace pipes::detail::api
       }
     };
 
-    return sink(ReferenceSink{m, ff});
+    return sink(ValueSink{PIPES_FWD(m), ff});
   }
 
   auto set_aggregator(std::set<int>& s, auto f)
@@ -72,7 +72,7 @@ namespace pipes::detail::api
       recur(PIPES_FWD(t), recur);
     };
 
-    return sink(ReferenceSink{s, ff});
+    return sink(ValueSink{PIPES_FWD(s), ff});
   }
 } // namespace pipes::detail::api
 

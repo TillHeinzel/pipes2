@@ -1344,12 +1344,6 @@ TEST_CASE("test")
           source >>= pipes::push_back(target);
           CHECK(target == std::vector{1, 2});
         }
-
-        SUBCASE("inline explicit")
-        {
-          pipes::for_each({1, 2}) >>= pipes::push_back(target);
-          CHECK(target == std::vector{1, 2});
-        }
       }
 
       SUBCASE("map")
@@ -1886,6 +1880,27 @@ TEST_CASE("test")
         CHECK(&sink == &retval);
       }
 
+      SUBCASE("to temporary")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+
+        auto sink = pipes::for_each(source) >>=
+          pipes::push_back(std::vector<int>{});
+
+        CHECK(sink == std::vector{1, 2, 3});
+      }
+
+      SUBCASE("to temporary with precreated values from function")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+
+        auto sink = pipes::for_each(source) >>= []() {
+          return pipes::push_back(std::vector<int>{4, 5});
+        }();
+
+        CHECK(sink == std::vector{4, 5, 1, 2, 3});
+      }
+
       SUBCASE("deque")
       {
         auto source = std::vector<int>{1, 2, 3};
@@ -1922,6 +1937,14 @@ TEST_CASE("test")
 
         auto& retval = pipes::for_each(source) >>= pipes::push_front(sink);
         CHECK(&sink == &retval);
+      }
+
+      SUBCASE("to temporary")
+      {
+        auto source = std::vector<int>{1, 2, 3};
+        auto sink = pipes::for_each(source) >>=
+          pipes::push_front(std::deque<int>{});
+        CHECK(sink == std::deque<int>{3, 2, 1});
       }
 
       SUBCASE("list")
@@ -2014,6 +2037,27 @@ TEST_CASE("test")
                 {3, "4"}
         });
       }
+
+      SUBCASE("temporary")
+      {
+        auto source = std::vector<std::pair<int, std::string>>{
+          {1, "1"},
+          {2, "2"},
+          {3, "3"},
+          {3, "4"}
+        };
+        auto sink = pipes::for_each(source) >>=
+          pipes::insert_or_assign(std::map<int, std::string>{});
+
+        // uses insert_or_assign, so the last element pushed in for a
+        // particular key is pushed
+        CHECK(sink
+              == std::map<int, std::string>{
+                {1, "1"},
+                {2, "2"},
+                {3, "4"}
+        });
+      }
     }
 
     SUBCASE("insert")
@@ -2027,6 +2071,15 @@ TEST_CASE("test")
 
         CHECK(sink == std::set<int>{1, 2, 3});
       }
+
+      SUBCASE("temporary")
+      {
+        auto source = std::vector{1, 2, 3, 3};
+        auto sink = pipes::for_each(source) >>= pipes::insert(std::set<int>{});
+
+        CHECK(sink == std::set<int>{1, 2, 3});
+      }
+
       SUBCASE("map")
       {
         auto source = std::vector<std::pair<int, std::string>>{

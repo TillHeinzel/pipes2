@@ -8,15 +8,21 @@
 namespace pipes::detail
 {
   template<class R, class F>
-  struct ReferenceSink
+  struct ValueSink
   {
-    R& r;
+    R r;
     F f;
 
     auto push(auto&& t) PIPES_RETURN(f(r, PIPES_FWD(t)));
 
-    R& value() { return r; }
+    R value() { return r; }
   };
+
+  template<class T, class F>
+  ValueSink(T&, F) -> ValueSink<T&, F>;
+
+  template<class T, class F>
+  ValueSink(T&&, F) -> ValueSink<T, F>;
 
   constexpr auto push_back_f =
     [](auto& r, auto&& t) PIPES_RETURN(r.push_back(PIPES_FWD(t)));
@@ -31,7 +37,10 @@ namespace pipes::detail
     PIPES_RETURN(r.insert_or_assign(std::get<0>(t), PIPES_FWD(std::get<1>(t))));
 
   template<class R, class F>
-  concept RangeAbleTo = std::invocable<F, R&, typename R::value_type>;
+  concept RangeAbleTo =
+    std::invocable<F,
+                   std::remove_reference_t<R>&,
+                   typename std::remove_reference_t<R>::value_type>;
 } // namespace pipes::detail
 
 namespace pipes::detail
