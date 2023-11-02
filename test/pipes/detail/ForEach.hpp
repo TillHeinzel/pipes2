@@ -12,13 +12,53 @@
 namespace pipes::detail
 {
   template<std::ranges::range R>
+  struct ViewWrapper
+  {
+    R r;
+
+    auto begin() { return r.begin(); }
+
+    auto end() { return r.end(); }
+
+    using value_type = std::ranges::range_value_t<R>;
+  };
+
+  template<class T>
+  ViewWrapper(T const&) -> ViewWrapper<T const&>;
+
+  template<class T>
+  ViewWrapper(T&) -> ViewWrapper<T const&>;
+
+  template<class T>
+  ViewWrapper(T&&) -> ViewWrapper<T>;
+
+  template<class R>
+  using value_t = typename R::value_type;
+
+  template<class>
+  struct is_viewWrapper : std::false_type
+  {
+  };
+
+  template<class R>
+  struct is_viewWrapper<ViewWrapper<R>> : std::true_type
+  {
+  };
+
+  template<class X>
+  concept IsViewWrapper = is_viewWrapper<X>::value;
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
+  template<IsViewWrapper R>
   struct ForEach
   {
-    R const& v;
+    R r;
 
-    void push(SinkFor<std::ranges::range_value_t<R>> auto& sink)
+    void push(SinkFor<value_t<R>> auto& sink)
     {
-      for(auto const& t : v)
+      for(auto const& t : r)
       {
         sink.push(t);
       }
@@ -39,13 +79,12 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<std::ranges::range R>
+  template<IsViewWrapper R>
   struct AdjacentSource
   {
-    R const& r;
+    R r;
 
-    auto push(SinkFor<std::ranges::range_value_t<R>,
-                      std::ranges::range_value_t<R>> auto& sink)
+    auto push(SinkFor<value_t<R>, value_t<R>> auto& sink)
     {
       if(r.begin() == r.end()) return;
 
@@ -62,14 +101,13 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<std::ranges::range R>
+  template<IsViewWrapper R>
   struct AddAll
   {
-    R const& r;
+    R r;
 
     template<class... Ts>
-    auto push(SinkFor<Ts..., std::ranges::range_value_t<R>> auto& sink,
-              Ts&&... ts)
+    auto push(SinkFor<Ts..., value_t<R>> auto& sink, Ts&&... ts)
     {
       for(const auto& x : r)
       {
@@ -77,21 +115,25 @@ namespace pipes::detail
       }
     }
   };
-
 } // namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<std::ranges::range R>
+  template<IsViewWrapper R>
   struct AddEach
   {
-    R const& r;
+    R r;
+
+    AddEach(R r) : r(r), it(r.begin()) {}
+
+    AddEach(AddEach&& other) : r(std::move(other.r)), it(r.begin()) {}
+
+    AddEach(AddEach const& other) : r(other.r), it(r.begin()) {}
 
     decltype(r.begin()) it = r.begin();
 
     template<class... Ts>
-    auto push(SinkFor<Ts..., std::ranges::range_value_t<R>> auto& sink,
-              Ts&&... ts)
+    auto push(SinkFor<Ts..., value_t<R>> auto& sink, Ts&&... ts)
     {
       if(it == r.end()) return;
       sink.push(PIPES_FWD(ts)..., *it++);

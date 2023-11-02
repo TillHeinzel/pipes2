@@ -50,7 +50,8 @@ namespace pipes::detail
   template<class... T1s, class... T2s>
   auto operator+(SourceSection<T1s...> source, Section<T2s...> pipe)
   {
-    return SourceSection{source.source, source.pipe + pipe};
+    return SourceSection{std::move(source.source),
+                         std::move(source.pipe) + std::move(pipe)};
   }
 
   template<class... T1s, class... T2s>

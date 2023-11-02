@@ -77,7 +77,13 @@ namespace pipes::detail::api
     return sink(Switch{std::tuple{cs...}});
   }
 
-  auto add_all(std::ranges::range auto const& r) { return pipe(AddAll{r}); }
+  auto add_all(std::ranges::range auto&& r)
+  {
+    return pipe(AddAll{ViewWrapper{PIPES_FWD(r)}});
+  }
 
-  auto add_each(std::ranges::range auto const& r) { return pipe(AddEach{r}); }
+  auto add_each(std::ranges::range auto&& r)
+  {
+    return pipe(AddEach{ViewWrapper{PIPES_FWD(r)}});
+  }
 } // namespace pipes::detail::api

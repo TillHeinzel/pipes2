@@ -6,33 +6,37 @@
 
 namespace pipes::detail::api
 {
-  auto for_each(std::ranges::range auto const& r) { return source(ForEach{r}); }
-
-  auto zip(std::ranges::range auto const& r,
-           std::ranges::range auto const&... rs)
+  auto for_each(std::ranges::range auto&& r)
   {
-    return (source(ForEach{r}) + ... + pipe(AddEach{rs}));
+    return source(ForEach{ViewWrapper{PIPES_FWD(r)}});
+  }
+
+  auto zip(std::ranges::range auto&& r, std::ranges::range auto&&... rs)
+  {
+    return (source(ForEach{ViewWrapper{PIPES_FWD(r)}}) + ...
+            + pipe(AddEach{ViewWrapper{PIPES_FWD(rs)}}));
+  }
+
+  auto adjacent(std::ranges::range auto&& r)
+  {
+    return source(AdjacentSource{ViewWrapper{PIPES_FWD(r)}});
+  }
+
+  auto cartesian_product(std::ranges::range auto&& r,
+                         std::ranges::range auto&&... rs)
+  {
+    return (source(ForEach{ViewWrapper{PIPES_FWD(r)}}) + ...
+            + pipe(AddAll{ViewWrapper{PIPES_FWD(rs)}}));
   }
 
   auto generic_source(auto f) { return source(GenericSource{f}); }
-
-  auto adjacent(std::ranges::range auto const& r)
-  {
-    return source(AdjacentSource{r});
-  }
-
-  auto cartesian_product(std::ranges::range auto const& r,
-                         std::ranges::range auto const&... rs)
-  {
-    return (source(ForEach{r}) + ... + pipe(AddAll{rs}));
-  }
 } // namespace pipes::detail::api
 
 namespace pipes::detail
 {
-  auto defaultSource(std::ranges::range auto const& r)
+  auto defaultSource(std::ranges::range auto&& r)
   {
-    return api::for_each(r);
+    return api::for_each(PIPES_FWD(r));
   }
 
 } // namespace pipes::detail

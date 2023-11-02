@@ -108,11 +108,10 @@ TEST_CASE("test")
 
       SUBCASE("times two")
       {
-        auto const source = std::vector<int>{1, 2, 3, 4, 5};
-
         auto target = std::vector<int>{};
 
-        source >>= pipes::transform([](int i) { return 2 * i; }) >>= target;
+        std::vector<int>{1, 2, 3, 4, 5} >>=
+          pipes::transform([](int i) { return 2 * i; }) >>= target;
 
         CHECK(target == std::vector{2, 4, 6, 8, 10});
       }
@@ -1024,6 +1023,8 @@ TEST_CASE("test")
 
         CHECK(target == std::vector<std::tuple<int, int>>{});
       }
+
+      static_assert(std::ranges::range<std::initializer_list<int>>);
       SUBCASE("")
       {
         auto const source1 = std::vector<int>{1};
@@ -1051,6 +1052,20 @@ TEST_CASE("test")
         auto target = std::vector<std::tuple<int, int>>{};
 
         source1 >>= pipes::add_all(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 4}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        auto pipe = []() { return pipes::add_all(std::vector<int>{4}); };
+
+        source1 >>= pipe() >>= target;
 
         CHECK(target
               == std::vector<std::tuple<int, int>>{
@@ -1163,6 +1178,20 @@ TEST_CASE("test")
         auto target = std::vector<std::tuple<int, int>>{};
 
         source1 >>= pipes::add_each(source2) >>= target;
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 3}
+        });
+      }
+      SUBCASE("")
+      {
+        auto const source1 = std::vector<int>{1};
+        auto const source2 = []()
+        { return pipes::add_each(std::vector<int>{3}); };
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        source1 >>= source2() >>= target;
 
         CHECK(target
               == std::vector<std::tuple<int, int>>{
@@ -1298,6 +1327,31 @@ TEST_CASE("test")
         }
       }
 
+      SUBCASE("initializer_list")
+      {
+        auto source = {1, 2};
+        auto target = std::vector<int>{};
+
+        SUBCASE("explicit")
+        {
+          pipes::for_each(source) >>= pipes::push_back(target);
+
+          CHECK(target == std::vector{1, 2});
+        }
+
+        SUBCASE("implicit")
+        {
+          source >>= pipes::push_back(target);
+          CHECK(target == std::vector{1, 2});
+        }
+
+        SUBCASE("inline explicit")
+        {
+          pipes::for_each({1, 2}) >>= pipes::push_back(target);
+          CHECK(target == std::vector{1, 2});
+        }
+      }
+
       SUBCASE("map")
       {
         auto source = std::map<int, int>{
@@ -1355,28 +1409,74 @@ TEST_CASE("test")
         SUBCASE("map keys view") {}
         SUBCASE("map values view") {}
       }
+
+      SUBCASE("temporaries")
+      {
+        auto target = std::vector<int>{};
+
+        SUBCASE("explicit")
+        {
+          pipes::for_each(std::vector<int>{1, 2, 3}) >>=
+            pipes::push_back(target);
+
+          CHECK(target == std::vector<int>{1, 2, 3});
+        }
+
+        SUBCASE("implicit")
+        {
+          std::vector<int>{1, 2, 3} >>= pipes::push_back(target);
+
+          CHECK(target == std::vector<int>{1, 2, 3});
+        }
+
+        SUBCASE("from function explicit")
+        {
+          auto f = []() { return pipes::for_each(std::vector{1, 2, 3}); };
+
+          f() >>= pipes::push_back(target);
+
+          CHECK(target == std::vector<int>{1, 2, 3});
+        }
+
+        SUBCASE("from function implicit")
+        {
+          auto f = []() {
+            return std::vector{1, 2, 3} >>=
+                   pipes::transform([](int i) { return i; });
+          };
+
+          f() >>= pipes::push_back(target);
+
+          CHECK(target == std::vector<int>{1, 2, 3});
+        }
+
+        SUBCASE("for_each does not copy when it doesn't have to")
+        {
+          auto src = std::vector<int>{};
+
+          auto pipe = pipes::for_each(src);
+
+          CHECK(&pipe.source.r.r == &src);
+        }
+      }
     }
 
     SUBCASE("Adjacent")
     {
       SUBCASE("")
       {
-        auto source = std::vector<int>{1};
-
         auto target = std::vector<std::tuple<int, int>>{};
 
-        pipes::adjacent(source) >>= pipes::push_back(target);
+        pipes::adjacent(std::vector{1}) >>= pipes::push_back(target);
 
         CHECK(target == std::vector<std::tuple<int, int>>{});
       }
 
       SUBCASE("")
       {
-        auto source = std::vector<int>{1, 2};
-
         auto target = std::vector<std::tuple<int, int>>{};
 
-        pipes::adjacent(source) >>= pipes::push_back(target);
+        pipes::adjacent(std::vector{1, 2}) >>= pipes::push_back(target);
 
         CHECK(target
               == std::vector<std::tuple<int, int>>{
@@ -1385,11 +1485,9 @@ TEST_CASE("test")
       }
       SUBCASE("")
       {
-        auto source = std::vector<int>{1, 2, 3};
-
         auto target = std::vector<std::tuple<int, int>>{};
 
-        pipes::adjacent(source) >>= pipes::push_back(target);
+        pipes::adjacent(std::vector{1, 2, 3}) >>= pipes::push_back(target);
 
         CHECK(target
               == std::vector<std::tuple<int, int>>{
@@ -1397,6 +1495,31 @@ TEST_CASE("test")
                 {2, 3}
         });
       }
+
+      SUBCASE("from function")
+      {
+        auto target = std::vector<std::tuple<int, int>>{};
+
+        auto f = []() { return pipes::adjacent(std::vector{1, 2, 3}); };
+
+        f() >>= pipes::push_back(target);
+
+        CHECK(target
+              == std::vector<std::tuple<int, int>>{
+                {1, 2},
+                {2, 3}
+        });
+      }
+
+      SUBCASE("does not copy when it doesn't have to")
+      {
+        auto src = std::vector<int>{};
+
+        auto pipe = pipes::adjacent(src);
+
+        CHECK(&pipe.source.r.r == &src);
+      }
+
       SUBCASE("")
       {
         auto source = std::map<int, int>{
@@ -1432,6 +1555,19 @@ TEST_CASE("test")
           pipes::push_back(results);
 
         CHECK(results == std::vector<std::string>{"1", "2"});
+      }
+
+      SUBCASE("temporary from function")
+      {
+        auto const source = []() {
+          return pipes::cartesian_product(std::vector<int>{1, 2});
+        };
+
+        auto results = std::vector<int>{};
+
+        source() >>= pipes::push_back(results);
+
+        CHECK(results == std::vector{1, 2});
       }
 
       SUBCASE("")
@@ -1591,6 +1727,19 @@ TEST_CASE("test")
           auto target = std::vector<std::tuple<int>>{};
 
           pipes::zip(source) >>= target;
+
+          CHECK(target == std::vector<std::tuple<int>>{{1}, {2}, {3}});
+        }
+
+        SUBCASE("temporary from function")
+        {
+          auto const source = []() {
+            return pipes::zip(std::vector<int>{1, 2, 3});
+          };
+
+          auto target = std::vector<std::tuple<int>>{};
+
+          source() >>= target;
 
           CHECK(target == std::vector<std::tuple<int>>{{1}, {2}, {3}});
         }
@@ -2076,8 +2225,6 @@ TEST_CASE("test")
     // pipes::transform(...) >>= target);
   }
 
-  // todo: allow temporaries as sources
-  //
   // todo: allow temporaries as targets, to be returned in the end
   //
   // todo: different operators, including <<= >>= << >> |
