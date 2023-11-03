@@ -1,46 +1,28 @@
 #include "doctest.h"
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
-#include <list>
-#include <map>
-#include <set>
-#include <string>
 #include <vector>
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "test_streaming.hpp"
 
-TEST_CASE("pipes")
+TEST_CASE("tee")
 {
-  SUBCASE("tee")
+  auto side = std::vector<int>{};
+
+  SUBCASE("")
   {
-    SUBCASE("")
-    {
-      auto source = std::vector<int>{1, 2, 3, 4, 5};
+    CHECK((source{1, 2, 3} >> pipes::tee(side) >> sink{}) //
+          == vals{1, 2, 3});
+    CHECK(side == vals{1, 2, 3});
+  }
 
-      auto sink = std::vector<int>{};
-      auto intermediate = std::vector<int>{};
-
-      source >>= pipes::tee(intermediate) >>= sink;
-
-      CHECK(sink == source);
-      CHECK(intermediate == source);
-    }
-
-    SUBCASE("")
-    {
-      auto source = std::vector<int>{1, 2, 3, 4, 5};
-
-      auto sink = std::vector<int>{};
-      auto intermediate = std::vector<int>{};
-
-      source >>= pipes::tee(pipes::push_back(intermediate)) >>= sink;
-
-      CHECK(sink == source);
-      CHECK(intermediate == source);
-    }
+  SUBCASE("")
+  {
+    CHECK((source{1, 2, 3} >> pipes::tee(pipes::push_back(side)) >> sink{}) //
+          == vals{1, 2, 3});
+    CHECK(side == vals{1, 2, 3});
   }
 }
