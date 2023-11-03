@@ -6,6 +6,7 @@
 #include "detail/Fork.hpp"
 #include "detail/Partition.hpp"
 #include "detail/Reduce_each.hpp"
+#include "detail/RemoveElement.hpp"
 #include "detail/Stride.hpp"
 #include "detail/Switch.hpp"
 #include "detail/Tee.hpp"
@@ -24,7 +25,7 @@ namespace pipes::detail::api
   {
     return transform(reduce_f(f, initial));
   };
-  
+
   auto reduce_each(auto f) { return transform(reduce_f(f)); };
 
   auto drop_until(auto f) { return filter(fulfilledOnce(f)); }
@@ -51,11 +52,6 @@ namespace pipes::detail::api
   auto fork(UsableAsSink auto&&... s)
   {
     return sink(Fork{std::tuple{useAsSink(PIPES_FWD(s))...}});
-  }
-
-  auto unzip(UsableAsSink auto&&... s)
-  {
-    return sink(Unzip{std::tuple{useAsSink(PIPES_FWD(s))...}});
   }
 
   auto partition(auto&& f,
@@ -85,5 +81,23 @@ namespace pipes::detail::api
   auto add_each(std::ranges::range auto&& r)
   {
     return pipe(AddEach{ViewWrapper{PIPES_FWD(r)}});
+  }
+
+  auto remove_element(UsableAsSink auto&& sink)
+  {
+    return pipe(RemoveElement{useAsSink(PIPES_FWD(sink))});
+  }
+
+  auto remove_elements(UsableAsSink auto&& sink1, UsableAsSink auto&&... sinks)
+  {
+    return (pipe(RemoveElement{useAsSink(PIPES_FWD(sink1))}) + ...
+            + pipe(RemoveElement{useAsSink(PIPES_FWD(sinks))}));
+  }
+
+  auto unzip(UsableAsSink auto&& s) { return asSinkSection(PIPES_FWD(s)); }
+
+  auto unzip(UsableAsSink auto&& s1, UsableAsSink auto&&... ss)
+  {
+    return remove_element(PIPES_FWD(s1)) + unzip(PIPES_FWD(ss)...);
   }
 } // namespace pipes::detail::api

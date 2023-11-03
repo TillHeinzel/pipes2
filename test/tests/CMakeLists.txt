@@ -36,7 +36,7 @@ add_library(tests OBJECT "test.cpp"
  "zip.cpp" 
  "generic_source.cpp" 
  "from_stream.cpp"
-)
+ "remove_element.cpp")
 
 target_link_libraries(tests PRIVATE pch_lib)
 target_precompile_headers(tests REUSE_FROM pch_lib)

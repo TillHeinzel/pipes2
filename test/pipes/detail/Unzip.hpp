@@ -25,4 +25,5 @@ namespace pipes::detail
       for_each([](auto nextAndT) { std::apply(doPush, nextAndT); }, nextsAndTs);
     }
   };
+
 } // namespace pipes::detail
