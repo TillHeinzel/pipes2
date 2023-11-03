@@ -77,5 +77,10 @@ namespace pipes::detail
   decltype(auto) operator>>=(Source&& source, Sink&& sink)
   {
     return link(PIPES_FWD(source), PIPES_FWD(sink));
+  }  
+  template<class Source, class Sink>
+  decltype(auto) operator>>(Source&& source, Sink&& sink)
+  {
+    return link(PIPES_FWD(source), PIPES_FWD(sink));
   }
 } // namespace pipes::detail
