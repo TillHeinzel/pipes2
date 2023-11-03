@@ -11,152 +11,92 @@
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "test_streaming.hpp"
 
-TEST_CASE("for each")
+using sink_t = sink;
+
+TEST_CASE("for_each")
 {
+  auto sink = pipes::push_back(sink_t{});
+
   SUBCASE("vector")
   {
     auto source = std::vector<int>{1, 2, 3};
 
-    auto target = std::vector<int>{};
+    CHECK((pipes::for_each(source) >> sink) //
+          == vals{1, 2, 3});
 
-    SUBCASE("explicit")
+    CHECK((source >> sink) //
+          == vals{1, 2, 3});
+
+    CHECK((pipes::for_each(std::vector<int>{1, 2, 3}) >> sink) //
+          == vals{1, 2, 3});
+
+    CHECK((std::vector<int>{1, 2, 3} >> sink) //
+          == vals{1, 2, 3});
+
+    auto makeExplicitForEach = [](auto... is)
+    { return pipes::for_each(std::vector<int>{is...}); };
+
+    CHECK((makeExplicitForEach(1, 2, 3) >> sink) //
+          == vals{1, 2, 3});
+
+    auto makeImplicitForEach = [](auto... is)
     {
-      pipes::for_each(source) >>= pipes::push_back(target);
+      return std::vector<int>{is...}
+             >> pipes::transform([](int i) { return i; });
+    };
 
-      CHECK(target == source);
-    }
+    CHECK((makeImplicitForEach(1, 2, 3) >> sink) //
+          == vals{1, 2, 3});
 
-    SUBCASE("implicit")
-    {
-      source >>= pipes::push_back(target);
-
-      CHECK(target == source);
-    }
+    // no unneccessary copies
+    CHECK(&pipes::for_each(source).source.r.r == &source);
   }
 
   SUBCASE("initializer_list")
   {
     auto source = {1, 2};
-    auto target = std::vector<int>{};
 
-    SUBCASE("explicit")
-    {
-      pipes::for_each(source) >>= pipes::push_back(target);
+    CHECK((pipes::for_each(source) >> sink) //
+          == std::vector{1, 2});
 
-      CHECK(target == std::vector{1, 2});
-    }
+    CHECK((source >> sink) //
+          == std::vector{1, 2});
 
-    SUBCASE("implicit")
-    {
-      source >>= pipes::push_back(target);
-      CHECK(target == std::vector{1, 2});
-    }
+    // does not work, sadly
+    // CHECK((pipes::for_each({1, 2}) >> sink) //
+    //      == std::vector{1, 2});
   }
 
   SUBCASE("map")
   {
-    auto source = std::map<int, int>{
-      {1, 11},
-      {2, 22},
-      {3, 33}
-    };
+    auto source = std::map<int, int>{{1, 11}, {2, 22}, {3, 33}};
 
-    SUBCASE("explicit")
-    {
-      auto target = std::vector<std::pair<int, int>>{};
-      pipes::for_each(source) >>= pipes::push_back(target);
+    using vals = std::vector<std::tuple<int, int>>;
 
-      CHECK(target
-            == std::vector<std::pair<int, int>>(source.begin(), source.end()));
-    }
+    CHECK((pipes::for_each(source) >> sink) //
+          == vals{{1, 11}, {2, 22}, {3, 33}});
 
-    SUBCASE("implicit")
-    {
-      auto target = std::vector<std::pair<int, int>>{};
-      source >>= pipes::push_back(target);
-
-      CHECK(target
-            == std::vector<std::pair<int, int>>(source.begin(), source.end()));
-    }
-
-    SUBCASE("zip")
-    {
-      auto source2 = std::map<int, int>{
-        {4, 44},
-        {5, 55},
-        {6, 66}
-      };
-
-      auto target = std::vector<std::tuple<int, int>>{};
-
-      pipes::zip(source, source2) >>= pipes::transform(
-        [](auto p1, auto p2) {
-          return std::tuple{p1.first, p2.second};
-        }) >>= pipes::push_back(target);
-
-      CHECK(target
-            == std::vector<std::tuple<int, int>>{
-              {1, 44},
-              {2, 55},
-              {3, 66}
-      });
-    }
+    CHECK((source >> sink) //
+          == vals{{1, 11}, {2, 22}, {3, 33}});
   }
 
   SUBCASE("range views")
   {
-    SUBCASE("map keys view") {}
-    SUBCASE("map values view") {}
-  }
+    auto m = std::map<int, int>{{1, 11}, {2, 22}, {3, 33}};
 
-  SUBCASE("temporaries")
-  {
-    auto target = std::vector<int>{};
+    CHECK((pipes::for_each(std::views::keys(m)) >> sink) //
+          == vals{1, 2, 3});
 
-    SUBCASE("explicit")
-    {
-      pipes::for_each(std::vector<int>{1, 2, 3}) >>= pipes::push_back(target);
+    CHECK((std::views::keys(m) >> sink) //
+          == vals{1, 2, 3});
 
-      CHECK(target == std::vector<int>{1, 2, 3});
-    }
+    auto makeKeyView = [&m]() { return pipes::for_each(std::views::keys(m)); };
 
-    SUBCASE("implicit")
-    {
-      std::vector<int>{1, 2, 3} >>= pipes::push_back(target);
-
-      CHECK(target == std::vector<int>{1, 2, 3});
-    }
-
-    SUBCASE("from function explicit")
-    {
-      auto f = []() { return pipes::for_each(std::vector{1, 2, 3}); };
-
-      f() >>= pipes::push_back(target);
-
-      CHECK(target == std::vector<int>{1, 2, 3});
-    }
-
-    SUBCASE("from function implicit")
-    {
-      auto f = []() {
-        return std::vector{1, 2, 3} >>=
-               pipes::transform([](int i) { return i; });
-      };
-
-      f() >>= pipes::push_back(target);
-
-      CHECK(target == std::vector<int>{1, 2, 3});
-    }
-
-    SUBCASE("for_each does not copy when it doesn't have to")
-    {
-      auto src = std::vector<int>{};
-
-      auto pipe = pipes::for_each(src);
-
-      CHECK(&pipe.source.r.r == &src);
-    }
+    CHECK((makeKeyView() >> sink) //
+          == vals{1, 2, 3});
   }
 }

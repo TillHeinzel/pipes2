@@ -11,7 +11,6 @@
 #include "detail/Switch.hpp"
 #include "detail/Tee.hpp"
 #include "detail/Transform.hpp"
-#include "detail/Unzip.hpp"
 
 #include "useAsSink.hpp"
 

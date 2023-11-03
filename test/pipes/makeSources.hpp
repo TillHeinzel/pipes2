@@ -33,7 +33,6 @@ namespace pipes::detail::api
   {
     return source(Combinations(PIPES_FWD(r)));
   }
-
 } // namespace pipes::detail::api
 
 namespace pipes::detail::api
