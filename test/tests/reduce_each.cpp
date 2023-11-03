@@ -1,52 +1,24 @@
 #include "doctest.h"
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
-#include <list>
-#include <map>
-#include <set>
-#include <string>
 #include <vector>
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "test_streaming.hpp"
 
-TEST_CASE("pipes")
+TEST_CASE("reduce each")
 {
-  SUBCASE("reduce each")
-  {
-    SUBCASE("with intial value")
-    {
-      auto source = std::vector<std::vector<int>>{
-        {},
-        {1},
-        {2, 3},
-        {5, 6, 7}
-      };
+  using sourc_ = source<std::vector<int>>;
 
-      auto sink = std::vector<int>{};
+  auto with_exlicit_init = pipes::reduce_each(std::plus{}, 0);
 
-      source >>= pipes::reduce_each(std::plus{}, 0) >>= sink;
+  CHECK((sourc_{{}, {1}, {2, 3}, {5, 6, 7}} >> with_exlicit_init >> sink{})
+        == vals{0, 1, 5, 18});
 
-      CHECK(sink == std::vector{0, 1, 5, 18});
-    }
+  auto with_inferred_init = pipes::reduce_each(std::plus{});
 
-    SUBCASE("with inferred intial value")
-    {
-      auto source = std::vector<std::vector<int>>{
-        {},
-        {1},
-        {2, 3},
-        {5, 6, 7}
-      };
-
-      auto sink = std::vector<int>{};
-
-      source >>= pipes::reduce_each(std::plus{}) >>= sink;
-
-      CHECK(sink == std::vector{0, 1, 5, 18});
-    }
-  }
+  CHECK((sourc_{{}, {1}, {2, 3}, {5, 6, 7}} >> with_inferred_init >> sink{})
+        == vals{0, 1, 5, 18});
 }
