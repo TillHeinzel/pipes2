@@ -84,6 +84,12 @@ namespace pipes::detail
     return api::push_back(r);
   }
 
+  template<class T>
+  auto defaultSink(std::vector<T>&& r)
+  {
+    return api::push_back(PIPES_FWD(r));
+  }
+
   template<class K, class V>
   auto defaultSink(std::map<K, V>& m)
   {

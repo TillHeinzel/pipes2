@@ -19,11 +19,21 @@ TEST_CASE("sinks")
   {
     SUBCASE("vector default is push_back")
     {
-      auto const source = std::vector{1, 2, 3};
-      auto sink = std::vector<int>{};
+      SUBCASE("ref")
+      {
+        auto const source = std::vector{1, 2, 3};
+        auto sink = std::vector<int>{};
 
-      pipes::for_each(source) >>= sink;
-      CHECK(sink == source);
+        pipes::for_each(source) >>= sink;
+        CHECK(sink == source);
+      }
+      SUBCASE("temporary")
+      {
+        auto const source = std::vector{1, 2, 3};
+        auto sink = //
+          pipes::for_each(source) >>= std::vector<int>{};
+        CHECK(sink == source);
+      }
     }
 
     SUBCASE("map default is insert_or_assign")
