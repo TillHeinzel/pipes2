@@ -1,50 +1,23 @@
 #include "doctest.h"
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
-#include <list>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "test_streaming.hpp"
 
-TEST_CASE("pipes")
+TEST_CASE("take")
 {
-  SUBCASE("take")
-  {
-    SUBCASE("count")
-    {
-      auto source = std::vector<int>{1, 2, 3, 4, 5};
+  CHECK((source{1, 2, 3, 4, 5} >>= pipes::take(3) >>= sink{}) //
+        == vals{1, 2, 3});
 
-      auto sink = std::vector<int>{};
-      source >>= pipes::take(3) >>= sink;
+  auto equals4 = [](int i) { return i == 4; };
 
-      CHECK(sink == std::vector{1, 2, 3});
-    }
+  CHECK((source{1, 2, 3, 4, 5} >> pipes::take_until(equals4) >> sink{}) //
+        == vals{1, 2, 3});
 
-    SUBCASE("take until")
-    {
-      auto source = std::vector<int>{1, 2, 3, 4, 5};
+  auto unequals4 = [](int i) { return i != 4; };
 
-      auto sink = std::vector<int>{};
-      source >>= pipes::take_until([](int i) { return i == 4; }) >>= sink;
-
-      CHECK(sink == std::vector{1, 2, 3});
-    }
-
-    SUBCASE("take while")
-    {
-      auto source = std::vector<int>{1, 2, 3, 4, 5};
-
-      auto sink = std::vector<int>{};
-      source >>= pipes::take_while([](int i) { return i != 4; }) >>= sink;
-
-      CHECK(sink == std::vector{1, 2, 3});
-    }
-  }
+  CHECK((source{1, 2, 3, 4, 5} >> pipes::take_while(unequals4) >> sink{}) //
+        == vals{1, 2, 3});
 }
