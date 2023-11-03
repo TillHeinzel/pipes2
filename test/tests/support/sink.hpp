@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 
-using sinkVal_t = std::variant<int, std::string>;
+using sinkVal_t = std::variant<int, std::string, std::tuple<int, int>>;
 using sink = std::vector<sinkVal_t>;
 
 template<class T>

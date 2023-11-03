@@ -20,5 +20,9 @@ source(int, Ts...) -> source<int>;
 template<class... Ts>
 source(const char*, Ts...) -> source<std::string>;
 
+
+template<class... T1s, class... Ts>
+source(std::tuple<T1s...>, Ts...) -> source<std::tuple<T1s...>>;
+
 template<class T = int>
 using vals = source<T>;
