@@ -1,59 +1,50 @@
 #include "doctest.h"
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
-#include <list>
-#include <map>
-#include <set>
 #include <string>
 #include <vector>
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "test_streaming.hpp"
 
-TEST_CASE("sinks")
+TEST_CASE("to_iterator")
 {
-  SUBCASE("to_iterator")
+  SUBCASE("")
   {
-    SUBCASE("")
-    {
-      auto const source = std::vector{1, 2, 3};
-      auto sink = std::vector<int>{4, 5, 6};
+    auto sink = std::vector<int>{4, 5, 6};
 
-      pipes::for_each(source) >>= pipes::to_iterator(sink.begin());
+    auto it = source{1, 2, 3} >> pipes::to_iterator(sink.begin());
 
-      CHECK(sink == source);
-    }
+    CHECK(sink == vals{1, 2, 3});
+    CHECK(it == sink.end());
+  }
 
-    SUBCASE("")
-    {
-      auto const source = std::vector{1, 2, 3};
-      auto sink = std::vector<int>{};
+  SUBCASE("")
+  {
+    auto sink = std::vector<int>{4, 5, 6, 7};
 
-      pipes::for_each(source) >>= pipes::to_iterator(std::back_inserter(sink));
+    source{1, 2, 3} >> pipes::to_iterator(sink.begin());
 
-      CHECK(sink == source);
-    }
+    CHECK(sink == vals{1, 2, 3, 7});
+  }
 
-    SUBCASE("")
-    {
-      auto const source = std::vector<std::string>{"1", "2", "3"};
-      auto sink = std::vector<std::string>{};
+  SUBCASE("")
+  {
+    auto sink = std::vector<int>{};
 
-      pipes::for_each(source) >>= pipes::to_iterator(std::back_inserter(sink));
+    source{1, 2, 3} >> pipes::to_iterator(std::back_inserter(sink));
 
-      CHECK(sink == source);
-    }
-    SUBCASE("")
-    {
-      auto const source = std::vector{1, 2, 3};
-      auto sink = std::vector<int>{4, 5, 6};
+    CHECK(sink == vals{1, 2, 3});
+  }
 
-      auto it = pipes::for_each(source) >>= pipes::to_iterator(sink.begin());
+  SUBCASE("")
+  {
+    auto sink = std::vector<std::string>{};
 
-      CHECK(it == sink.end());
-    }
+    source{"1", "2", "3"} >> pipes::to_iterator(std::back_inserter(sink));
+
+    CHECK(sink == vals{"1", "2", "3"});
   }
 }
