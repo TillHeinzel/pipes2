@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <variant>
 
 #include "pipes/pipes.hpp"
 
@@ -21,6 +22,7 @@ std::ostream& println_tuple_impl(std::ostream& os,
           ...);
 }
 
+
 namespace std
 {
   template<pipes::detail::Tuple_like Tup>
@@ -31,6 +33,13 @@ namespace std
                        t,
                        std::make_index_sequence<std::tuple_size_v<Tup>>{});
     stream << ">";
+    return stream;
+  }
+
+template<class... Ts>
+  std::ostream& operator<<(std::ostream& stream, std::variant<Ts...> const& var)
+  {
+    std::visit([&stream](auto const& x) { stream << x; }, var);
     return stream;
   }
 
