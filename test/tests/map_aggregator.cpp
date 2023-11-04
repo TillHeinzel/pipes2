@@ -13,47 +13,26 @@
 
 #include "test_streaming.hpp"
 
-TEST_CASE("sinks")
+TEST_CASE("map_aggregator")
 {
-  SUBCASE("map_aggregator")
+  SUBCASE("")
   {
-    SUBCASE("")
-    {
-      auto const source = std::vector<std::pair<int, int>>{
-        {1, 1},
-        {2, 2}
-      };
-      auto sink = std::map<int, int>{};
+    auto const source = std::vector<std::pair<int, int>>{{1, 1}, {2, 2}};
+    auto sink = std::map<int, int>{};
 
-      pipes::for_each(source) >>= pipes::map_aggregator(sink, std::plus{});
+    pipes::for_each(source) >>= pipes::map_aggregator(sink, std::plus{});
 
-      CHECK(sink
-            == std::map<int, int>{
-              {1, 1},
-              {2, 2}
-      });
-    }
+    CHECK(sink == std::map<int, int>{{1, 1}, {2, 2}});
+  }
 
-    SUBCASE("")
-    {
-      auto const source = std::vector<std::pair<int, int>>{
-        {1, 1},
-        {2, 5},
-        {3, 3},
-        {3, 4}
-      };
-      auto sink = std::map<int, int>{
-        {2, 2}
-      };
+  SUBCASE("")
+  {
+    auto const source =
+      std::vector<std::pair<int, int>>{{1, 1}, {2, 5}, {3, 3}, {3, 4}};
+    auto sink = std::map<int, int>{{2, 2}};
 
-      pipes::for_each(source) >>= pipes::map_aggregator(sink, std::plus{});
+    pipes::for_each(source) >>= pipes::map_aggregator(sink, std::plus{});
 
-      CHECK(sink
-            == std::map<int, int>{
-              {1,     1},
-              {2, 2 + 5},
-              {3, 3 + 4}
-      });
-    }
+    CHECK(sink == std::map<int, int>{{1, 1}, {2, 2 + 5}, {3, 3 + 4}});
   }
 }
