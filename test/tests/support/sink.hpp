@@ -5,7 +5,7 @@
 #include <vector>
 
 using sinkVal_t =
-  std::variant<int, std::string, std::tuple<int>, std::tuple<int, int>>;
+  std::variant<char, int, double, std::string, std::tuple<int>, std::tuple<int, int>>;
 
 using sink = std::vector<sinkVal_t>;
 

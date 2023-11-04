@@ -18,6 +18,9 @@ template<class... Ts>
 source(int, Ts...) -> source<int>;
 
 template<class... Ts>
+source(char, Ts...) -> source<char>;
+
+template<class... Ts>
 source(const char*, Ts...) -> source<std::string>;
 
 template<class... Ts>

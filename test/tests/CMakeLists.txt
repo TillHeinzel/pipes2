@@ -24,7 +24,7 @@ add_library(tests OBJECT
  "to_iterator.cpp" 
  "set_aggregator.cpp" 
  "map_aggregator.cpp" 
- "to_ostream.cpp" 
+ "to_stream.cpp" 
  "generic_sink.cpp" 
  "reduce.cpp" 
  "default_sinks.cpp"
@@ -36,7 +36,8 @@ add_library(tests OBJECT
  "zip.cpp" 
  "generic_source.cpp" 
  "from_stream.cpp"
- "remove_element.cpp")
+ "remove_element.cpp"
+)
 
 target_link_libraries(tests PRIVATE pch_lib)
 target_precompile_headers(tests REUSE_FROM pch_lib)

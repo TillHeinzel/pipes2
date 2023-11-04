@@ -3,6 +3,7 @@
 #include <ranges>
 
 #include "detail/ForEach.hpp"
+#include "detail/FromStream.hpp"
 
 namespace pipes::detail::api
 {
@@ -38,6 +39,15 @@ namespace pipes::detail::api
 namespace pipes::detail::api
 {
   auto generic_source(auto f) { return source(GenericSource{f}); }
+} // namespace pipes::detail::api
+
+namespace pipes::detail::api
+{
+  template<class T = char>
+  auto from_stream(std::istream& stream)
+  {
+    return source(FromStream<T>{stream});
+  }
 } // namespace pipes::detail::api
 
 namespace pipes::detail

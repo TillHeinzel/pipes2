@@ -1,6 +1,7 @@
 #pragma once
 
 #include "detail/Discard.hpp"
+#include "detail/FromStream.hpp"
 #include "detail/PushBack.hpp"
 
 namespace pipes::detail::api
@@ -63,6 +64,8 @@ namespace pipes::detail::api
   {
     return sink(ValueSink{PIPES_FWD(s), set_aggregate_f(f)});
   }
+
+  inline auto to_stream(std::ostream& stream) { return sink(ToStream{stream}); }
 } // namespace pipes::detail::api
 
 namespace pipes::detail
