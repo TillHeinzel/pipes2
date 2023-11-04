@@ -1,30 +1,15 @@
 #include "doctest.h"
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
-#include <list>
-#include <map>
-#include <set>
-#include <string>
 #include <vector>
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "test_streaming.hpp"
 
-TEST_CASE("sources")
+TEST_CASE("generic_source")
 {
-  SUBCASE("generic source")
-  {
-    auto source = std::vector<int>{1, 2, 3};
-
-    auto target = std::vector<int>{};
-
-    pipes::generic_source([&source](auto& sink)
-                          { sink.push(source.front()); }) >>=
-      pipes::push_back(target);
-
-    CHECK(target == std::vector{1});
-  }
+  CHECK((pipes::generic_source([](auto& sink) { sink.push(1); }) >> sink{}) //
+        == vals{1});
 }
