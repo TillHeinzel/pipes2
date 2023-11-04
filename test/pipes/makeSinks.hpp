@@ -95,4 +95,10 @@ namespace pipes::detail
   {
     return api::insert_or_assign(m);
   }
+
+  template<class K, class V>
+  auto defaultSink(std::map<K, V>&& m)
+  {
+    return api::insert_or_assign(PIPES_FWD(m));
+  }
 } // namespace pipes::detail
