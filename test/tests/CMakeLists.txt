@@ -46,6 +46,8 @@ set_target_properties(tests PROPERTIES UNITY_BUILD_BATCH_SIZE 6)
 
 target_include_directories(tests PRIVATE "${CMAKE_CURRENT_LIST_DIR}/..")
 
+  # todo: make switch cases possible to chain with >>
+  #
   # todo: use as output iterator for std::algorithms
   # 
   # todo: different operators, including <<= >>= << >> |
