@@ -46,6 +46,12 @@ namespace pipes::detail::api
     return sink(ValueSink{PIPES_FWD(m), map_aggregate_f(f)});
   }
 
+  template<class K, class V>
+  auto map_aggregator(std::map<K, V>&& m, auto f)
+  {
+    return sink(ValueSink{PIPES_FWD(m), map_aggregate_f(f)});
+  }
+
   template<class T>
   auto set_aggregator(std::set<T>& s, auto f)
   {
