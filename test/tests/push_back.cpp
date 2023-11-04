@@ -17,59 +17,24 @@
 
 TEST_CASE("push_back")
 {
-  SUBCASE("vector")
-  {
-    auto source = std::vector<int>{1, 2, 3};
-    auto sink = std::vector<int>{};
+  auto source = pipes::for_each(std::vector<int>{1, 2, 3});
 
-    pipes::for_each(source) >>= pipes::push_back(sink);
-    CHECK(sink == source);
-  }
+  CHECK((source >> pipes::push_back(std::vector<int>{})) //
+        == std::vector<int>{1, 2, 3});
 
-  SUBCASE("return value from pipeline")
-  {
-    auto source = std::vector<int>{1, 2, 3};
-    auto sink = std::vector<int>{};
+  CHECK((source >> pipes::push_back(std::deque<int>{})) //
+        == std::deque<int>{1, 2, 3});
 
-    auto& retval = pipes::for_each(source) >>= pipes::push_back(sink);
-    CHECK(&sink == &retval);
-  }
+  CHECK((source >> pipes::push_back(std::list<int>{})) //
+        == std::list<int>{1, 2, 3});
 
-  SUBCASE("to temporary")
-  {
-    auto source = std::vector<int>{1, 2, 3};
+  auto sink = std::vector<int>{};
+  auto& retval = source >> pipes::push_back(sink);
 
-    auto sink = pipes::for_each(source) >>=
-      pipes::push_back(std::vector<int>{});
+  CHECK(sink == std::vector<int>{1, 2, 3});
+  CHECK(&retval == &sink);
 
-    CHECK(sink == std::vector{1, 2, 3});
-  }
+  auto makePushBack = []() { return pipes::push_back(std::vector<int>{4, 5}); };
 
-  SUBCASE("to temporary with precreated values from function")
-  {
-    auto source = std::vector<int>{1, 2, 3};
-
-    auto sink = pipes::for_each(source) >>= []() {
-      return pipes::push_back(std::vector<int>{4, 5});
-    }();
-
-    CHECK(sink == std::vector{4, 5, 1, 2, 3});
-  }
-
-  SUBCASE("deque")
-  {
-    auto source = std::vector<int>{1, 2, 3};
-    auto sink = std::deque<int>{};
-
-    pipes::for_each(source) >>= pipes::push_back(sink);
-    CHECK(sink == std::deque<int>(source.begin(), source.end()));
-  }
-  SUBCASE("list")
-  {
-    auto source = std::vector<int>{1, 2, 3};
-    auto sink = std::list<int>{};
-
-    pipes::for_each(source) >>= pipes::push_back(sink);
-    CHECK(sink == std::list<int>(source.begin(), source.end()));
-  }
+  CHECK((source >> makePushBack()) == std::vector{4, 5, 1, 2, 3});
 }
