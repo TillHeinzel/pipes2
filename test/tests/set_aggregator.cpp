@@ -11,40 +11,42 @@
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "test_streaming.hpp"
 
-TEST_CASE("sinks")
+TEST_CASE("set_aggregator")
 {
-  SUBCASE("set_aggregator")
+  SUBCASE("")
   {
-    SUBCASE("")
-    {
-      auto const source = std::vector<int>{1, 2};
-      auto sink = std::set<int>{};
+    using set = std::set<int>;
 
-      pipes::for_each(source) >>= pipes::set_aggregator(sink, std::plus{});
+    CHECK((source{1, 2} >> pipes::set_aggregator(set{}, std::plus{})) //
+          == set{1, 2});
 
-      CHECK(sink == std::set<int>{1, 2});
-    }
+    CHECK((source{1, 3} >> pipes::set_aggregator(set{1}, std::plus{})) //
+          == set{1 + 1, 3});
 
-    SUBCASE("")
-    {
-      auto const source = std::vector<int>{1, 3};
-      auto sink = std::set<int>{1};
+    CHECK((source{1} >> pipes::set_aggregator(set{1, 2}, std::plus{})) //
+          == set{1 + 1 + 2});
 
-      pipes::for_each(source) >>= pipes::set_aggregator(sink, std::plus{});
+    auto sink = set{};
 
-      CHECK(sink == std::set<int>{1 + 1, 3});
-    }
+    CHECK((source{1, 2} >> pipes::set_aggregator(sink, std::plus{})) //
+          == set{1, 2});
+  }
 
-    SUBCASE("")
-    {
-      auto const source = std::vector<int>{1};
-      auto sink = std::set<int>{1, 2};
+  SUBCASE("")
+  {
+    using set = std::set<std::string>;
 
-      pipes::for_each(source) >>= pipes::set_aggregator(sink, std::plus{});
+    CHECK((source{"1", "2"} >> pipes::set_aggregator(set{"1"}, std::plus{})) //
+          == set{"11", "2"});
 
-      CHECK(sink == std::set<int>{1 + 1 + 2});
-    }
+    auto sink = set{};
+
+    CHECK((source{"1", "2"} >> pipes::set_aggregator(sink, std::plus{})) //
+          == set{"1", "2"});
+
   }
 }

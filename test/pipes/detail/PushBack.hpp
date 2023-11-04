@@ -45,6 +45,39 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
+  auto set_aggregate_f(auto f)
+  {
+    return [f](auto& r, auto&& t)
+    {
+      auto recur = [f, &r](auto&& t, auto&& recur) -> void
+      {
+        auto [it, didInsert] = r.insert(PIPES_FWD(t));
+        if(!didInsert)
+        {
+          recur(f(r.extract(it).value(), PIPES_FWD(t)), recur);
+        }
+      };
+
+      recur(PIPES_FWD(t), recur);
+    };
+  }
+
+  auto map_aggregate_f(auto f)
+  {
+    return [f](auto& m, auto&& t)
+    {
+      auto [it, didInsert] = m.insert(PIPES_FWD(t));
+
+      if(!didInsert)
+      {
+        it->second = f(it->second, PIPES_FWD(t).second);
+      }
+    };
+  }
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
   template<class It>
   struct IteratorSink
   {

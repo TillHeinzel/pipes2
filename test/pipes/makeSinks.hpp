@@ -43,36 +43,19 @@ namespace pipes::detail::api
   template<class K, class V>
   auto map_aggregator(std::map<K, V>& m, auto f)
   {
-    auto ff = [f](auto& m, auto&& t)
-    {
-      auto [it, didInsert] = m.insert(PIPES_FWD(t));
-
-      if(!didInsert)
-      {
-        it->second = f(it->second, PIPES_FWD(t).second);
-      }
-    };
-
-    return sink(ValueSink{PIPES_FWD(m), ff});
+    return sink(ValueSink{PIPES_FWD(m), map_aggregate_f(f)});
   }
 
-  auto set_aggregator(std::set<int>& s, auto f)
+  template<class T>
+  auto set_aggregator(std::set<T>& s, auto f)
   {
-    auto ff = [f](auto& r, auto&& t)
-    {
-      auto recur = [f, &r](auto&& t, auto&& recur) -> void
-      {
-        auto [it, didInsert] = r.insert(PIPES_FWD(t));
-        if(!didInsert)
-        {
-          recur(f(r.extract(it).value(), PIPES_FWD(t)), recur);
-        }
-      };
+    return sink(ValueSink{PIPES_FWD(s), set_aggregate_f(f)});
+  }
 
-      recur(PIPES_FWD(t), recur);
-    };
-
-    return sink(ValueSink{PIPES_FWD(s), ff});
+  template<class T>
+  auto set_aggregator(std::set<T>&& s, auto f)
+  {
+    return sink(ValueSink{PIPES_FWD(s), set_aggregate_f(f)});
   }
 } // namespace pipes::detail::api
 
