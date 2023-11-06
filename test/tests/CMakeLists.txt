@@ -58,8 +58,6 @@ target_include_directories(tests PRIVATE "${CMAKE_CURRENT_LIST_DIR}/..")
   # todo: big types with lots of data (do not have to copy everything all the
   # time)
   #
-  # todo: streams
-  #
   # todo: generators and take-from for generator with effectively infinite
   # sources
   #

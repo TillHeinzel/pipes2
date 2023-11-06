@@ -15,3 +15,18 @@ target_link_libraries(${TARGET_NAME} tests)
 add_test(NAME tests COMMAND ${TARGET_NAME})
 
 add_subdirectory(compile_time_tests)
+
+set(rootDir "${CMAKE_CURRENT_SOURCE_DIR}/pipes")
+set(initialFile "pipes.hpp")
+set(targetFileName "${CMAKE_CURRENT_BINARY_DIR}/single_header.hpp")
+set(desiredOrder detail/Utility detail/GenericImplementation detail)
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/single_header.hpp COMMAND 
+${CMAKE_COMMAND} 
+-DrootDir=${rootDir} 
+-DinitialFile=${initialFIle} 
+-DtargetFileName=${targetFileName}
+-DdesiredOrder=${targetFileName}
+-P ${CMAKE_CURRENT_SOURCE_DIR}/makeSingleHeader.cmake 
+DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/makeSingleHeader.cmake
+)
