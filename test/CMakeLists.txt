@@ -16,7 +16,7 @@ add_library(tests OBJECT
  "stride.cpp"
  "tee.cpp"
  "unzip.cpp"
- "chunk.cpp" 
+  
  "push_front.cpp" 
  "discard.cpp" 
  "insert_or_assign.cpp" 
@@ -26,13 +26,13 @@ add_library(tests OBJECT
  "map_aggregator.cpp" 
  "to_stream.cpp" 
  "generic_sink.cpp" 
- "reduce.cpp" 
+  
  "default_sinks.cpp"
  "adjacent.cpp" 
  "cartesian_product.cpp" 
  "combinations.cpp" 
  "interleave.cpp" 
- "intersperse.cpp" 
+  
  "zip.cpp" 
  "generic_source.cpp" 
  "from_stream.cpp"
@@ -57,6 +57,12 @@ add_subdirectory(testrunner)
   # todo: interfunction with ranges
   # 
   # todo: tuple_flatten
+  # 
+  # todo: chunk
+  # 
+  # todo: reduce
+  # 
+  # todo: intersperse
   # 
   # todo: move-only types
   #

@@ -36,27 +36,18 @@ namespace pipes::detail::api
     return source(Combinations{ViewWrapper{PIPES_FWD(r)}});
   }
 
-} // namespace pipes::detail::api
-
-namespace pipes::detail
-{
-  template<std::size_t... Is>
-  auto interleave_impl(std::index_sequence<Is...>,
-                       std::ranges::range auto&& r,
-                       std::ranges::range auto&&... rs)
-  {
-    return (source(ForEach{ViewWrapper{PIPES_FWD(r)}}) + ...
-            + pipe(MixIn{ViewWrapper{PIPES_FWD(rs)}, Is + 1}));
-  }
-} // namespace pipes::detail
-
-namespace pipes::detail::api
-{
   auto interleave(std::ranges::range auto&& r, std::ranges::range auto&&... rs)
   {
-    return interleave_impl(std::index_sequence_for<decltype(rs)...>{},
-                           PIPES_FWD(r),
-                           PIPES_FWD(rs)...);
+    constexpr auto impl =
+      []<std::size_t... Is>(std::index_sequence<Is...>, auto&& r, auto&&... rs)
+    {
+      return (source(ForEach{ViewWrapper{PIPES_FWD(r)}}) + ...
+              + pipe(MixIn{ViewWrapper{PIPES_FWD(rs)}, Is + 1}));
+    };
+
+    return impl(std::index_sequence_for<decltype(rs)...>{},
+                PIPES_FWD(r),
+                PIPES_FWD(rs)...);
   }
 } // namespace pipes::detail::api
 
