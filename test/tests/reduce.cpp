@@ -11,7 +11,7 @@
 
 #include "pipes/pipes.hpp"
 
-#include "test_streaming.hpp"
+#include "support/test_streaming.hpp"
 
 TEST_CASE("sinks")
 {

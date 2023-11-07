@@ -4,7 +4,7 @@
 
 #include "support/sink.hpp"
 #include "support/source.hpp"
-#include "test_streaming.hpp"
+#include "support/test_streaming.hpp"
 
 TEST_CASE("take")
 {

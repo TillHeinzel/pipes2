@@ -16,4 +16,23 @@ endif()
 
 enable_testing()
 
+add_subdirectory("pch")
+add_subdirectory("src")
 add_subdirectory("test")
+
+
+set(rootDir "${CMAKE_CURRENT_SOURCE_DIR}/pipes")
+set(initialFile "pipes.hpp")
+set(targetFileName "${CMAKE_CURRENT_BINARY_DIR}/single_header.hpp")
+set(desiredOrder detail/Utility detail/GenericImplementation detail)
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/single_header.hpp COMMAND 
+${CMAKE_COMMAND} 
+-DrootDir=${rootDir} 
+-DinitialFile=${initialFIle} 
+-DtargetFileName=${targetFileName}
+-DdesiredOrder=${targetFileName}
+-P ${CMAKE_CURRENT_SOURCE_DIR}/makeSingleHeader.cmake 
+DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/makeSingleHeader.cmake
+)
+
