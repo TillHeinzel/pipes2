@@ -12,4 +12,4 @@
 #include <tuple>
 #include <ranges>
 
-#include "doctest.h"
+#include <doctest/doctest.h>

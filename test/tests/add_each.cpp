@@ -1,4 +1,4 @@
-#include "doctest.h"
+#include <doctest/doctest.h>
 
 #include <deque>
 #include <forward_list>

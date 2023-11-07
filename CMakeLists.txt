@@ -16,6 +16,7 @@ endif()
 
 enable_testing()
 
+add_subdirectory("3pp")
 add_subdirectory("pch")
 add_subdirectory("src")
 add_subdirectory("test")

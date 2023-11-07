@@ -42,8 +42,8 @@ add_library(tests OBJECT
 target_link_libraries(tests PRIVATE pch_lib)
 target_precompile_headers(tests REUSE_FROM pch_lib)
 
-
 target_link_libraries(tests PRIVATE pipes)
+target_link_libraries(tests PRIVATE doctest)
 
 set_target_properties(tests PROPERTIES UNITY_BUILD ON) 
 set_target_properties(tests PROPERTIES UNITY_BUILD_BATCH_SIZE 6) 
