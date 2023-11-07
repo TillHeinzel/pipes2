@@ -1,175 +1,72 @@
 #include <doctest/doctest.h>
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
 #include <list>
-#include <map>
-#include <set>
 #include <string>
-#include <vector>
+#include <tuple>
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "support/test_streaming.hpp"
 
 TEST_CASE("add_each")
 {
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{};
-    auto const source2 = std::vector<int>{};
-    auto target = std::vector<std::tuple<int, int>>{};
+  using t = std::tuple<int, int>;
+  using tt = std::tuple<int, std::string>;
+  using ttt = std::tuple<int, int, int>;
+  using list_t = std::list<int>;
 
-    source1 >>= pipes::add_each(source2) >>= target;
+  CHECK((pipes::for_each(source{}) >>         //
+         pipes::add_each(source{}) >> sink{}) //
+        == vals{});
 
-    CHECK(target == std::vector<std::tuple<int, int>>{});
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1};
-    auto const source2 = std::vector<int>{};
-    auto target = std::vector<std::tuple<int, int>>{};
+  CHECK((pipes::for_each(source{1}) >> //
+         pipes::add_each(source{}) >> sink{})
+        == vals{});
 
-    source1 >>= pipes::add_each(source2) >>= target;
+  CHECK((pipes::for_each(source{}) >>          //
+         pipes::add_each(source{1}) >> sink{}) //
+        == vals{});
 
-    CHECK(target == std::vector<std::tuple<int, int>>{});
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{};
-    auto const source2 = std::vector<int>{1};
-    auto target = std::vector<std::tuple<int, int>>{};
+  CHECK((pipes::for_each(source{1}) >>         //
+         pipes::add_each(source{3}) >> sink{}) //
+        == vals{t{1, 3}});
 
-    source1 >>= pipes::add_each(source2) >>= target;
+  CHECK((pipes::for_each(source{1, 2}) >>      //
+         pipes::add_each(source{3}) >> sink{}) //
+        == vals{t{1, 3}});
 
-    CHECK(target == std::vector<std::tuple<int, int>>{});
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1};
-    auto const source2 = std::vector<int>{3};
-    auto target = std::vector<std::tuple<int, int>>{};
+  CHECK((pipes::for_each(source{1}) >>            //
+         pipes::add_each(source{3, 4}) >> sink{}) //
+        == vals{t{1, 3}});
 
-    source1 >>= pipes::add_each(source2) >>= target;
+  CHECK((pipes::for_each(source{1, 2}) >>         //
+         pipes::add_each(source{3, 4}) >> sink{}) //
+        == vals{t{1, 3}, t{2, 4}});
 
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {1, 3}
-    });
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1};
-    auto const source2 = []() { return pipes::add_each(std::vector<int>{3}); };
-    auto target = std::vector<std::tuple<int, int>>{};
+  CHECK((pipes::for_each(source{1, 2}) >>         //
+         pipes::add_each(list_t{3, 4}) >> sink{}) //
+        == vals{t{1, 3}, t{2, 4}});
 
-    source1 >>= source2() >>= target;
+  CHECK((pipes::for_each(source{1, 2}) >>             //
+         pipes::add_each(source{"3", "4"}) >> sink{}) //
+        == vals{tt{1, "3"}, tt{2, "4"}});
 
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {1, 3}
-    });
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1, 2};
-    auto const source2 = std::vector<int>{3};
-    auto target = std::vector<std::tuple<int, int>>{};
+  CHECK((pipes::for_each(source{1, 2}) >>         //
+         pipes::add_each(list_t{3, 4}) >>         //
+         pipes::add_each(list_t{5, 6}) >> sink{}) //
+        == vals{ttt{1, 3, 5}, ttt{2, 4, 6}});
 
-    source1 >>= pipes::add_each(source2) >>= target;
+  CHECK((pipes::for_each(source{1, 2, 2, 2, 2}) >>      //
+         pipes::add_each(list_t{3, 4}) >>               //
+         pipes::add_each(list_t{5, 6, 6, 6}) >> sink{}) //
+        == vals{ttt{1, 3, 5}, ttt{2, 4, 6}});
 
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {1, 3}
-    });
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1};
-    auto const source2 = std::vector<int>{3, 4};
-    auto target = std::vector<std::tuple<int, int>>{};
+  auto const makeAddEach = [](auto... xs)
+  { return pipes::add_each(source{xs...}); };
 
-    source1 >>= pipes::add_each(source2) >>= target;
-
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {1, 3}
-    });
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1, 2};
-    auto const source2 = std::vector<int>{3, 4};
-    auto target = std::vector<std::tuple<int, int>>{};
-
-    source1 >>= pipes::add_each(source2) >>= target;
-
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {1, 3},
-            {2, 4},
-    });
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1, 2};
-    auto const source2 = std::list<int>{3, 4};
-    auto target = std::vector<std::tuple<int, int>>{};
-
-    source1 >>= pipes::add_each(source2) >>= target;
-
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {1, 3},
-            {2, 4},
-    });
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<std::string>{"1", "2"};
-    auto const source2 = std::vector<int>{3, 4};
-    auto target = std::vector<std::tuple<std::string, int>>{};
-
-    source1 >>= pipes::add_each(source2) >>= target;
-
-    CHECK(target
-          == std::vector<std::tuple<std::string, int>>{
-            {"1", 3},
-            {"2", 4},
-    });
-  }
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1, 2};
-    auto const source2 = std::list<int>{3, 4};
-    auto const source3 = std::list<int>{5, 6};
-    auto target = std::vector<std::tuple<int, int, int>>{};
-
-    source1 >>= pipes::add_each(source2) >>= pipes::add_each(source3) >>=
-      target;
-
-    CHECK(target
-          == std::vector<std::tuple<int, int, int>>{
-            {1, 3, 5},
-            {2, 4, 6},
-    });
-  }
-
-  SUBCASE("")
-  {
-    auto const source1 = std::vector<int>{1, 2, 2, 2, 2};
-    auto const source2 = std::list<int>{3, 4};
-    auto const source3 = std::list<int>{5, 6, 6, 6};
-    auto target = std::vector<std::tuple<int, int, int>>{};
-
-    source1 >>= pipes::add_each(source2) >>= pipes::add_each(source3) >>=
-      target;
-
-    CHECK(target
-          == std::vector<std::tuple<int, int, int>>{
-            {1, 3, 5},
-            {2, 4, 6},
-    });
-  }
+  CHECK((pipes::for_each(source{1})   //
+         >> makeAddEach(3) >> sink{}) //
+        == vals{t{1, 3}});
 }
