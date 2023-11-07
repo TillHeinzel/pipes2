@@ -11,20 +11,23 @@
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "support/test_streaming.hpp"
 
-TEST_CASE("sinks")
+TEST_CASE("discard")
+{
+  auto const source = std::vector<int>{1, 2, 3, 4};
+
+  static_assert(pipes::CanLink<decltype(source), decltype(pipes::discard())>);
+
+  // todo: typed with types that can be converted to?
+}
+
+TEST_CASE("bad types cannot link")
 {
   SUBCASE("discard")
   {
-    SUBCASE("generic")
-    {
-      auto const source = std::vector<int>{1, 2, 3, 4};
-
-      static_assert(
-        pipes::CanLink<decltype(source), decltype(pipes::discard())>);
-    }
-
     SUBCASE("typed")
     {
       using SourceSection = std::vector<int>;
@@ -60,7 +63,5 @@ TEST_CASE("sinks")
       using Sink3 = decltype(pipes::discard<int>());
       static_assert(!pipes::CanLink<SourceSection, Sink3>);
     }
-
-    // todo: typed with types that can be converted to?
   }
 }
