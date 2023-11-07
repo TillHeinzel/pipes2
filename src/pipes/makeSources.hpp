@@ -30,9 +30,9 @@ namespace pipes::detail::api
             + pipe(AddAll{ViewWrapper{PIPES_FWD(rs)}}));
   }
 
-  inline auto combinations(std::vector<int>&& r)
+  auto combinations(std::ranges::range auto&& r)
   {
-    return source(Combinations(PIPES_FWD(r)));
+    return source(Combinations{ViewWrapper{PIPES_FWD(r)}});
   }
 } // namespace pipes::detail::api
 
