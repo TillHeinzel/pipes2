@@ -90,4 +90,16 @@ namespace pipes::detail
   {
     return link(PIPES_FWD(source), PIPES_FWD(sink));
   }
+
+  template<class Source, class Sink>
+  decltype(auto) operator<<(Sink&& sink, Source&& source)
+  {
+    return link(PIPES_FWD(source), PIPES_FWD(sink));
+  }
+
+  template<class Source, class Sink>
+  decltype(auto) operator<<=(Sink&& sink, Source&& source)
+  {
+    return link(PIPES_FWD(source), PIPES_FWD(sink));
+  }
 } // namespace pipes::detail

@@ -37,7 +37,7 @@ add_library(tests OBJECT
  "generic_source.cpp" 
  "from_stream.cpp"
  "remove_element.cpp"
-)
+ "otherOperators.cpp")
 
 target_link_libraries(tests PRIVATE pch_lib)
 target_precompile_headers(tests REUSE_FROM pch_lib)
@@ -54,8 +54,6 @@ add_subdirectory(testrunner)
 
   # todo: use as output iterator for std::algorithms
   # 
-  # todo: different operators, including <<= >>= << >> |
-  #
   # todo: move-only types
   #
   # todo: return values from multi-pipes
@@ -71,3 +69,6 @@ add_subdirectory(testrunner)
   #
   # todo: make examples that use the single-header generated from the headers
   # and links with cmake
+  #
+  # todo: exporting target and find-able module in cmake
+  # 
