@@ -13,6 +13,7 @@ using sinkVal_t =
                std::tuple<int, int>,
                std::tuple<int, int, int>,
                std::tuple<int, std::string>,
+               std::tuple<std::string, std::string>,
                std::tuple<int, std::string, int>,
                std::tuple<std::pair<int, std::string>, int>,
                std::tuple<std::tuple<int, int>, std::tuple<int, int>>,
