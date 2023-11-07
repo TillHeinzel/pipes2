@@ -57,10 +57,16 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  template<class F>
-  auto link(Case<F> c, UsableAsSink auto&& s)
+  template<class F, class... Pieces1, class... Pieces2>
+  auto link(CaseSection<F, Pieces1...> c, Section<Pieces2...> s)
   {
-    return CaseSink{c.f, useAsSink(PIPES_FWD(s))};
+    return CaseSection{c.f, c.pipe + s};
+  }
+
+  template<class F, class... Pieces>
+  auto link(CaseSection<F, Pieces...> c, UsableAsSink auto&& s)
+  {
+    return CaseSink{c.f, useAsSink(c.pipe + asSinkSection(PIPES_FWD(s)))};
   }
 } // namespace pipes::detail
 
@@ -77,7 +83,8 @@ namespace pipes::detail
   decltype(auto) operator>>=(Source&& source, Sink&& sink)
   {
     return link(PIPES_FWD(source), PIPES_FWD(sink));
-  }  
+  }
+
   template<class Source, class Sink>
   decltype(auto) operator>>(Source&& source, Sink&& sink)
   {

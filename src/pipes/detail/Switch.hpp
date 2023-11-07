@@ -6,11 +6,11 @@
 
 namespace pipes::detail
 {
-
-  template<class F>
-  struct Case
+  template<class F, class... Pieces>
+  struct CaseSection
   {
     F f;
+    Section<Pieces...> pipe;
   };
 
   template<class F, class S>

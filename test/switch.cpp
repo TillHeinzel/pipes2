@@ -38,14 +38,14 @@ TEST_CASE("switch")
   SUBCASE("simple case with chained ops")
   {
     source{1, 2, 3, 4}
-      >> pipes::switch_(pipes::case_(isEven) >>= doubleIt >> s1);
+      >> pipes::switch_(pipes::case_(isEven) >> doubleIt >> s1);
 
     CHECK(s1 == vals{4, 8});
   }
 
   SUBCASE("2 cases")
   {
-    source{1, 2, 3, 4, 5, 6, 7, 8} >>=
+    source{1, 2, 3, 4, 5, 6, 7, 8} >>
       pipes::switch_(pipes::case_(isMultipleOf3) >> s1,
                      pipes::case_(isMultipleOf4) >> s2);
 
@@ -55,7 +55,7 @@ TEST_CASE("switch")
 
   SUBCASE("2 cases with default")
   {
-    source{1, 2, 3, 4, 5, 6, 7, 8} >>=
+    source{1, 2, 3, 4, 5, 6, 7, 8} >>
       pipes::switch_(pipes::case_(isMultipleOf3) >> s1,
                      pipes::case_(isMultipleOf4) >> s2,
                      pipes::default_ >> rest);
@@ -67,10 +67,10 @@ TEST_CASE("switch")
 
   SUBCASE("other type")
   {
-    source{"1", "___", "22", "a", "aa", "_", "xxxx"} >>= pipes::switch_(
+    source{"1", "___", "22", "a", "aa", "_", "xxxx"} >> pipes::switch_(
       pipes::case_([](std::string s) { return s.size() == 1; }) >> s1,
       pipes::case_([](std::string s) { return s.size() == 2; }) >> s2,
-      pipes::default_ >>= rest);
+      pipes::default_ >> rest);
 
     CHECK(s1 == vals{"1", "a", "_"});
     CHECK(s2 == vals{"22", "aa"});
@@ -88,6 +88,16 @@ TEST_CASE("switch")
 
     CHECK(s1 == vals{t{3, 4}});
   }
+
+  SUBCASE("case with (left-to-right) >>")
+  {
+    auto c1 = pipes::case_(isEven) >> doubleIt;
+    auto c = c1 >> s1;
+
+    source{1, 2, 3, 4} >> pipes::switch_(c);
+
+    CHECK(s1 == vals{4, 8});
+  }
 }
 
 TEST_CASE("wrong type cannot link")
@@ -97,7 +107,7 @@ TEST_CASE("wrong type cannot link")
     auto isEven = [](int i) { return i % 2 == 0; };
 
     auto target = std::vector<int>{};
-    auto sw = pipes::switch_(pipes::case_(isEven) >>= target);
+    auto sw = pipes::switch_(pipes::case_(isEven) >> target);
 
     using GoodSource = std::vector<int>;
     using BadSource = std::vector<std::string>;

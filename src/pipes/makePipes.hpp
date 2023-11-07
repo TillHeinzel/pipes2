@@ -62,9 +62,9 @@ namespace pipes::detail::api
                           useAsSink(PIPES_FWD(ifFalse))});
   }
 
-  constexpr auto default_ = Case{[](auto&&...) { return true; }};
+  constexpr auto default_ = CaseSection{[](auto&&...) { return true; }};
 
-  auto case_(auto f) { return Case{f}; }
+  auto case_(auto f) { return CaseSection{f}; }
 
   template<class... Fs, class... Ss>
   auto switch_(CaseSink<Fs, Ss>... cs)
