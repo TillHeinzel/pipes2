@@ -1,172 +1,117 @@
 #include <doctest/doctest.h>
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
-#include <list>
-#include <map>
-#include <set>
-#include <string>
-#include <vector>
-
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "support/test_streaming.hpp"
 
 TEST_CASE("chained operations")
 {
+  auto isOdd = [](int i) { return i % 2 == 1; };
+  auto isNotEmpty = [](std::string const& s) { return !s.empty(); };
+  auto isSame = [](auto const& lhs, auto const& rhs) { return lhs == rhs; };
+  auto isNotSame = [](auto const& lhs, auto const& rhs) { return lhs != rhs; };
+
+  auto timesTwo = [](int i) { return 2 * i; };
+  auto addOne = [](int i) { return i + 1; };
+  auto addSemicolon = [](std::string s) { return s + ";"; };
+
   SUBCASE("filter transform")
   {
-    auto const source = std::vector<int>{1, 2, 3, 4, 5};
-
-    auto target = std::vector<int>{};
-
-    source >>= pipes::filter([](int i) { return i % 2 == 1; }) >>=
-      pipes::transform([](int i) { return 2 * i; }) >>= target;
-
-    CHECK(target == std::vector{2, 6, 10});
+    CHECK((source{1, 2, 3, 4, 5} >> pipes::filter(isOdd)
+           >> pipes::transform(timesTwo) >> sink{})
+          == vals{2, 6, 10});
   }
 
   SUBCASE("prepare open sink")
   {
-    auto const source = std::vector<int>{1, 2, 3, 4, 5};
+    auto sinkChain =
+      pipes::filter(isOdd) >> pipes::transform(timesTwo) >> sink{};
 
-    auto target = std::vector<int>{};
-
-    auto sink = pipes::filter([](int i) { return i % 2 == 1; }) >>=
-      pipes::transform([](int i) { return 2 * i; }) >>= target;
-
-    source >>= sink;
-
-    CHECK(target == std::vector{2, 6, 10});
+    CHECK((source{1, 2, 3, 4, 5} >> sinkChain) //
+          == vals{2, 6, 10});
   }
 
   SUBCASE("prepare operations-chain with 2 ops")
   {
-    auto const source = std::vector<int>{1, 2, 3, 4, 5};
+    auto chain = pipes::filter(isOdd) >> pipes::transform(timesTwo);
 
-    auto chain = pipes::filter([](int i) { return i % 2 == 1; }) >>=
-      pipes::transform([](int i) { return 2 * i; });
-
-    auto target = std::vector<int>{};
-
-    source >>= chain >>= target;
-
-    CHECK(target == std::vector{2, 6, 10});
+    CHECK((source{1, 2, 3, 4, 5} >> chain >> sink{}) //
+          == vals{2, 6, 10});
   }
 
   SUBCASE("prepare operations-chain with 3 ops")
   {
-    auto const source = std::vector<int>{1, 2, 3, 4, 5};
+    auto chain = pipes::filter(isOdd) >> pipes::transform(timesTwo)
+                 >> pipes::transform(addOne);
 
-    auto chain = pipes::filter([](int i) { return i % 2 == 1; }) >>=
-      pipes::transform([](int i) { return 2 * i; }) >>=
-      pipes::transform([](int i) { return i + 1; });
-
-    auto target = std::vector<int>{};
-
-    source >>= chain >>= target;
-
-    CHECK(target == std::vector{3, 7, 11});
+    CHECK((source{1, 2, 3, 4, 5} >> chain >> sink{}) //
+          == vals{3, 7, 11});
   }
 
-  SUBCASE("prepare source without sink")
+  SUBCASE("prepare src without sink")
   {
     SUBCASE("int")
     {
-      auto chain = pipes::filter([](int i) { return i % 2 == 1; }) >>=
-        pipes::transform([](int i) { return 2 * i; }) >>=
-        pipes::transform([](int i) { return i + 1; });
+      auto chain = pipes::filter(isOdd) >> pipes::transform(timesTwo)
+                   >> pipes::transform(addOne);
 
-      auto target = std::vector<int>{};
+      auto const src = source{1, 2, 3, 4, 5} >> chain;
 
-      auto const orig = std::vector<int>{1, 2, 3, 4, 5};
-
-      auto const source = orig >>= chain;
-      source >>= target;
-
-      CHECK(target == std::vector{3, 7, 11});
+      CHECK((src >> sink{}) //
+            == vals{3, 7, 11});
     }
     SUBCASE("string")
     {
-      auto chain = pipes::filter([](std::string s) { return !s.empty(); }) >>=
-        pipes::transform([](std::string s) { return s + ";"; });
+      auto chain = pipes::filter(isNotEmpty) >> pipes::transform(addSemicolon);
 
-      auto const orig = std::vector<std::string>{"1", "", "3"};
-      auto target = std::vector<std::string>{};
+      auto const src = source{"1", "", "3"} >> chain;
 
-      auto const source = orig >>= chain;
-      source >>= target;
-
-      CHECK(target == std::vector<std::string>{"1;", "3;"});
+      CHECK((src >> sink{}) //
+            == vals{"1;", "3;"});
     }
   }
 
-  SUBCASE("prepare source without sink in multiple steps")
+  SUBCASE("prepare src without sink in multiple steps")
   {
-    auto target = std::vector<int>{};
+    auto const orig = source{1, 2, 3, 4, 5};
 
-    auto const orig = std::vector<int>{1, 2, 3, 4, 5};
+    auto const source1 =
+      orig >> pipes::filter(isOdd) >> pipes::transform(timesTwo);
 
-    auto const source1 = orig >>=
-      pipes::filter([](int i) { return i % 2 == 1; }) >>=
-      pipes::transform([](int i) { return 2 * i; });
-    auto const source = source1 >>=
-      pipes::transform([](int i) { return i + 1; });
+    auto const src = source1 >> pipes::transform(addOne);
 
-    source >>= target;
-
-    CHECK(target == std::vector{3, 7, 11});
+    CHECK((src >> sink{}) == vals{3, 7, 11});
   }
 
-  SUBCASE("prepare multi-parameter source without sink")
+  SUBCASE("")
   {
-    auto const source1 = std::vector<int>{1, 2, 3, 6};
-    auto const source2 = std::vector<int>{3, 2, 7, 6};
+    using t = std::tuple<int, int>;
 
-    auto target = std::vector<std::tuple<int, int>>{};
+    auto const source1 = source{1, 2, 3, 6};
+    auto const source2 = source{3, 2, 7, 6};
 
-    auto source = pipes::zip(source1, source2) >>=
-      pipes::filter([](int i, int j) { return i == j; });
+    SUBCASE("prepare multi-parameter src without sink")
+    {
+      auto src = pipes::zip(source1, source2) >> pipes::filter(isSame);
 
-    source >>= target;
+      CHECK((src >> sink{}) == vals{t{2, 2}, t{6, 6}});
+    }
 
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {2, 2},
-            {6, 6}
-    });
-  }
+    SUBCASE("prepare multi-parameter sink without src")
+    {
+      auto sink_ = pipes::filter(isSame) >> sink{};
 
-  SUBCASE("prepare multi-parameter sink without source")
-  {
-    auto const source1 = std::vector<int>{1, 2, 3, 6};
-    auto const source2 = std::vector<int>{3, 2, 7, 6};
+      CHECK((pipes::zip(source1, source2) >> sink_) //
+            == vals{t{2, 2}, t{6, 6}});
+    }
 
-    auto target = std::vector<std::tuple<int, int>>{};
-
-    auto sink = pipes::filter([](int i, int j) { return i == j; }) >>= target;
-
-    pipes::zip(source1, source2) >>= sink;
-
-    CHECK(target
-          == std::vector<std::tuple<int, int>>{
-            {2, 2},
-            {6, 6}
-    });
-  }
-
-  SUBCASE("zip filter transform")
-  {
-    auto const source1 = std::vector<int>{1, 2, 3, 6};
-    auto const source2 = std::vector<int>{3, 2, 7, 6};
-
-    auto target = std::vector<int>{};
-
-    pipes::zip(source1, source2) >>=
-      pipes::filter([](int i, int j) { return i != j; }) >>=
-      pipes::transform([](int i, int j) { return i + j; }) >>= target;
-
-    CHECK(target == std::vector<int>{4, 10});
+    SUBCASE("zip filter transform")
+    {
+      CHECK((pipes::zip(source1, source2) >> pipes::filter(isNotSame)
+             >> pipes::transform(std::plus{}) >> sink{})
+            == vals{4, 10});
+    }
   }
 }
