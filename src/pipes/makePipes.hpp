@@ -4,6 +4,7 @@
 #include "detail/Filter.hpp"
 #include "detail/Flatten.hpp"
 #include "detail/Fork.hpp"
+#include "detail/MixIn.hpp"
 #include "detail/Partition.hpp"
 #include "detail/Reduce_each.hpp"
 #include "detail/RemoveElement.hpp"
@@ -98,5 +99,10 @@ namespace pipes::detail::api
   auto unzip(UsableAsSink auto&& s1, UsableAsSink auto&&... ss)
   {
     return remove_element(PIPES_FWD(s1)) + unzip(PIPES_FWD(ss)...);
+  }
+
+  auto mix_in(std::ranges::range auto&& r, std::size_t skips = 1)
+  {
+    return pipe(MixIn{ViewWrapper{PIPES_FWD(r)}, skips});
   }
 } // namespace pipes::detail::api

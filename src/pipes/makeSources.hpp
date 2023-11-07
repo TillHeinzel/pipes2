@@ -4,6 +4,7 @@
 
 #include "detail/ForEach.hpp"
 #include "detail/FromStream.hpp"
+#include "detail/MixIn.hpp"
 
 namespace pipes::detail::api
 {
@@ -33,6 +34,29 @@ namespace pipes::detail::api
   auto combinations(std::ranges::range auto&& r)
   {
     return source(Combinations{ViewWrapper{PIPES_FWD(r)}});
+  }
+
+} // namespace pipes::detail::api
+
+namespace pipes::detail
+{
+  template<std::size_t... Is>
+  auto interleave_impl(std::index_sequence<Is...>,
+                       std::ranges::range auto&& r,
+                       std::ranges::range auto&&... rs)
+  {
+    return (source(ForEach{ViewWrapper{PIPES_FWD(r)}}) + ...
+            + pipe(MixIn{ViewWrapper{PIPES_FWD(rs)}, Is + 1}));
+  }
+} // namespace pipes::detail
+
+namespace pipes::detail::api
+{
+  auto interleave(std::ranges::range auto&& r, std::ranges::range auto&&... rs)
+  {
+    return interleave_impl(std::index_sequence_for<decltype(rs)...>{},
+                           PIPES_FWD(r),
+                           PIPES_FWD(rs)...);
   }
 } // namespace pipes::detail::api
 
