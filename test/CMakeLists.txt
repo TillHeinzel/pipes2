@@ -54,6 +54,10 @@ add_subdirectory(testrunner)
 
   # todo: use as output iterator for std::algorithms
   # 
+  # todo: interfunction with ranges
+  # 
+  # todo: tuple_flatten
+  # 
   # todo: move-only types
   #
   # todo: return values from multi-pipes

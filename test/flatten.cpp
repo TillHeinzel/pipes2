@@ -11,56 +11,33 @@
 
 #include "pipes/pipes.hpp"
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "support/test_streaming.hpp"
 
-TEST_CASE("pipes")
+TEST_CASE("flatten")
 {
-  SUBCASE("flatten")
+  SUBCASE("simple")
   {
-    SUBCASE("simple")
-    {
-      auto source = std::vector<std::vector<int>>{
-        {1, 2}
-      };
+    CHECK((source<std::vector<int>>{{1, 2}} >> pipes::flatten() >> sink{}) //
+          == vals{1, 2});
+  }
 
-      auto target = std::vector<int>{};
-      source >>= pipes::flatten() >>= target;
+  SUBCASE("multiple layers")
+  {
+    CHECK((source<std::vector<std::vector<int>>>{{{1, 2}, {3}}, {{4}, {5, 6}}}
+           >> pipes::flatten() >> pipes::flatten() >> sink{}) //
+          == vals{1, 2, 3, 4, 5, 6});
+  }
 
-      CHECK(target == std::vector{1, 2});
-    }
+  SUBCASE("other types")
+  {
+    using t = std::pair<int, int>;
 
-    SUBCASE("other types")
-    {
-      auto source = std::vector<std::map<int, int>>{
-        {{1, 2}, {3, 4}},
-        {{5, 6}},
-        {{7, 8}, {9, 10}}
-      };
-
-      auto target = std::vector<std::pair<int, int>>{};
-      source >>= pipes::flatten() >>= target;
-
-      CHECK(target
-            == std::vector<std::pair<int, int>>{
-              {1,  2},
-              {3,  4},
-              {5,  6},
-              {7,  8},
-              {9, 10}
-      });
-    }
-
-    SUBCASE("multiple layers")
-    {
-      auto source = std::vector<std::vector<std::vector<int>>>{
-        {{1, 2}},
-        {{3, 4}, {5, 6}}
-      };
-
-      auto target = std::vector<int>{};
-      source >>= pipes::flatten() >>= pipes::flatten() >>= target;
-
-      CHECK(target == std::vector{1, 2, 3, 4, 5, 6});
-    }
+    CHECK((source<std::map<int, int>>{{t{1, 2}, t{3, 4}},
+                                      {t{5, 6}},
+                                      {t{7, 8}, t{9, 10}}}
+           >> pipes::flatten() >> std::vector<std::pair<int, int>>{}) //
+          == vals{t{1, 2}, t{3, 4}, t{5, 6}, t{7, 8}, t{9, 10}});
   }
 }
