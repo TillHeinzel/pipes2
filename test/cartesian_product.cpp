@@ -1,181 +1,66 @@
 #include <doctest/doctest.h>
 
-#include <deque>
-#include <forward_list>
-#include <iostream>
-#include <list>
 #include <map>
-#include <set>
-#include <string>
 #include <vector>
+#include <tuple>
 
-#include "pipes/pipes.hpp"
+#include <pipes/pipes.hpp>
 
+#include "support/sink.hpp"
+#include "support/source.hpp"
 #include "support/test_streaming.hpp"
 
-TEST_CASE("sources")
+TEST_CASE("cartesian product")
 {
-  SUBCASE("cartesian product")
-  {
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{1, 2};
+  using t = std::tuple<int, std::string>;
+  using tt = std::tuple<std::pair<int, std::string>, int>;
+  using ttt = std::tuple<int, std::string, int>;
 
-      auto results = std::vector<std::string>{};
+  using map = std::map<int, std::string>;
 
-      pipes::cartesian_product(inputs1) >>=
-        pipes::transform([](int i) { return std::to_string(i); }) >>=
-        pipes::push_back(results);
+  CHECK((pipes::cartesian_product(source{1, 2}) >> sink{}) //
+        == vals{1, 2});
 
-      CHECK(results == std::vector<std::string>{"1", "2"});
-    }
+  CHECK((pipes::cartesian_product(source{}, source{}) >> sink{}) //
+        == vals{});
 
-    SUBCASE("temporary from function")
-    {
-      auto const source = []() {
-        return pipes::cartesian_product(std::vector<int>{1, 2});
-      };
+  CHECK((pipes::cartesian_product(source{1}, source{}) >> sink{}) //
+        == vals{});
 
-      auto results = std::vector<int>{};
+  CHECK((pipes::cartesian_product(source{}, source{"a"}) >> sink{}) //
+        == vals{});
 
-      source() >>= pipes::push_back(results);
+  CHECK((pipes::cartesian_product(source{1}, source{"a"}) >> sink{}) //
+        == vals{t{1, "a"}});
 
-      CHECK(results == std::vector{1, 2});
-    }
+  CHECK((pipes::cartesian_product(source{1, 2}, source{"a"}) >> sink{}) //
+        == vals{t{1, "a"}, t{2, "a"}});
 
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{};
-      auto const inputs2 = std::vector<std::string>{};
+  CHECK((pipes::cartesian_product(source{1, 2}, source{"a", "b"}) >> sink{}) //
+        == vals{t{1, "a"}, t{1, "b"}, t{2, "a"}, t{2, "b"}});
 
-      auto results = std::vector<std::string>{};
+  CHECK((pipes::cartesian_product(map{{5, "a"}, {7, "b"}}, source{2, 3})
+         >> sink{}) //
+        == vals{tt{{5, "a"}, 2},
+                tt{{5, "a"}, 3},
+                tt{{7, "b"}, 2},
+                tt{{7, "b"}, 3}});
 
-      pipes::cartesian_product(inputs1, inputs2) >>=
-        pipes::transform([](int i, std::string const& s)
-                         { return std::to_string(i) + '-' + s; }) >>=
-        pipes::push_back(results);
+  CHECK((pipes::cartesian_product(source{2, 3}, source{"a", "b"}, source{5, 7})
+         >> sink{}) //
+        == vals{ttt{2, "a", 5},
+                ttt{2, "a", 7},
+                ttt{2, "b", 5},
+                ttt{2, "b", 7},
+                ttt{3, "a", 5},
+                ttt{3, "a", 7},
+                ttt{3, "b", 5},
+                ttt{3, "b", 7}});
 
-      CHECK(results == std::vector<std::string>{});
-    }
+  auto const makeProduct = []() {
+    return pipes::cartesian_product(source{1, 2});
+  };
 
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{1};
-      auto const inputs2 = std::vector<std::string>{};
-
-      auto results = std::vector<std::string>{};
-
-      pipes::cartesian_product(inputs1, inputs2) >>=
-        pipes::transform([](int i, std::string const& s)
-                         { return std::to_string(i) + '-' + s; }) >>=
-        pipes::push_back(results);
-
-      CHECK(results == std::vector<std::string>{});
-    }
-
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{};
-      auto const inputs2 = std::vector<std::string>{"up"};
-
-      auto results = std::vector<std::string>{};
-
-      pipes::cartesian_product(inputs1, inputs2) >>=
-        pipes::transform([](int i, std::string const& s)
-                         { return std::to_string(i) + '-' + s; }) >>=
-        pipes::push_back(results);
-
-      CHECK(results == std::vector<std::string>{});
-    }
-
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{1};
-      auto const inputs2 = std::vector<std::string>{"up"};
-
-      auto results = std::vector<std::string>{};
-
-      pipes::cartesian_product(inputs1, inputs2) >>=
-        pipes::transform([](int i, std::string const& s)
-                         { return std::to_string(i) + '-' + s; }) >>=
-        pipes::push_back(results);
-
-      CHECK(results == std::vector<std::string>{"1-up"});
-    }
-
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{1, 2};
-      auto const inputs2 = std::vector<std::string>{"up"};
-
-      auto results = std::vector<std::string>{};
-
-      pipes::cartesian_product(inputs1, inputs2) >>=
-        pipes::transform([](int i, std::string const& s)
-                         { return std::to_string(i) + '-' + s; }) >>=
-        pipes::push_back(results);
-
-      CHECK(results == std::vector<std::string>{"1-up", "2-up"});
-    }
-
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{1, 2};
-      auto const inputs2 = std::vector<std::string>{"up", "down"};
-
-      auto results = std::vector<std::string>{};
-
-      pipes::cartesian_product(inputs1, inputs2) >>=
-        pipes::transform([](int i, std::string const& s)
-                         { return std::to_string(i) + '-' + s; }) >>=
-        pipes::push_back(results);
-
-      CHECK(results
-            == std::vector<std::string>{"1-up", "1-down", "2-up", "2-down"});
-    }
-
-    SUBCASE("")
-    {
-      auto const inputs1 = std::map<int, std::string>{
-        {5,   "up"},
-        {7, "down"}
-      };
-      auto const inputs2 = std::vector<int>{2, 3};
-
-      auto results = std::vector<std::string>{};
-
-      pipes::cartesian_product(inputs1, inputs2) >>= pipes::transform(
-        [](auto p, int i) {
-          return std::to_string(i * p.first) + '-' + p.second;
-        }) >>= pipes::push_back(results);
-
-      CHECK(
-        results
-        == std::vector<std::string>{"10-up", "15-up", "14-down", "21-down"});
-    }
-
-    SUBCASE("")
-    {
-      auto const inputs1 = std::vector<int>{2, 3};
-      auto const inputs2 = std::vector<std::string>{"up", "down"};
-      auto const inputs3 = std::vector<int>{5, 7};
-
-      auto results = std::vector<std::string>{};
-
-      pipes::cartesian_product(inputs1, inputs2, inputs3) >>=
-        pipes::transform([](int i, std::string const& s, int j)
-                         { return std::to_string(i * j) + '-' + s; }) >>=
-        pipes::push_back(results);
-
-      CHECK(results
-            == std::vector<std::string>{"10-up",
-                                        "14-up",
-                                        "10-down",
-                                        "14-down",
-                                        "15-up",
-                                        "21-up",
-                                        "15-down",
-                                        "21-down"});
-    }
-  }
+  CHECK((makeProduct() >> sink{}) //
+        == vals{1, 2});
 }
