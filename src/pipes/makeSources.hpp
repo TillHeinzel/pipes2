@@ -5,6 +5,7 @@
 #include "detail/ForEach.hpp"
 #include "detail/FromStream.hpp"
 #include "detail/MixIn.hpp"
+#include "detail/OutputIterator.hpp"
 
 namespace pipes::detail::api
 {
@@ -49,6 +50,8 @@ namespace pipes::detail::api
                 PIPES_FWD(r),
                 PIPES_FWD(rs)...);
   }
+
+  inline auto output_iterator() { return OutputIteratorSection{}; }
 } // namespace pipes::detail::api
 
 namespace pipes::detail::api
@@ -71,5 +74,4 @@ namespace pipes::detail
   {
     return api::for_each(PIPES_FWD(r));
   }
-
 } // namespace pipes::detail

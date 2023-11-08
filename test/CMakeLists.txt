@@ -37,7 +37,8 @@ add_library(tests OBJECT
  "generic_source.cpp" 
  "from_stream.cpp"
  "remove_element.cpp"
- "otherOperators.cpp")
+ "otherOperators.cpp" 
+ "output_iterator.cpp")
 
 target_link_libraries(tests PRIVATE pch_lib)
 target_precompile_headers(tests REUSE_FROM pch_lib)
@@ -52,8 +53,6 @@ target_include_directories(tests PRIVATE "${CMAKE_CURRENT_LIST_DIR}/..")
 
 add_subdirectory(testrunner)
 
-  # todo: use as output iterator for std::algorithms
-  # 
   # todo: interfunction with ranges
   # 
   # todo: tuple_flatten

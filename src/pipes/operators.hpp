@@ -70,6 +70,22 @@ namespace pipes::detail
   }
 } // namespace pipes::detail
 
+namespace pipes::detail
+{
+  template<class... Ts, class... Pieces>
+  auto link(OutputIteratorSection<Ts...> lhs, Section<Pieces...> rhs)
+  {
+    return OutputIteratorSection{std::move(lhs).pipe + std::move(rhs)};
+  }
+
+  template<class... Ts>
+  auto link(OutputIteratorSection<Ts...> d, UsableAsSink auto&& s)
+  {
+    return OutputIterator{
+      useAsSink(std::move(d).pipe + asSinkSection(PIPES_FWD(s)))};
+  }
+} // namespace pipes::detail
+
 namespace pipes::detail::api
 {
   template<class SourceSection, class SinkSection>
