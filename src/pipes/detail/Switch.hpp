@@ -6,17 +6,26 @@
 
 namespace pipes::detail
 {
-  template<class F, class... Ts>
-  void callFirstSuccess(std::tuple<Ts...> cases, F f)
+  template<class F, class R>
+  struct TakeIf
   {
-    auto ff = [f](auto... ts)
+    F f;
+    R r;
+    
+    template<class... Ts>
+      requires(SinkFor<R, Ts...> && std::invocable<F, Ts...>)
+    void push(SinkFor<Ts...> auto& next, Ts&&... ts)
     {
-      // short-circuits. after success, no more calls to f
-      return (f(ts) || ...);
-    };
-
-    std::apply(ff, cases);
-  }
+      if(f(ts...))
+      {
+        r.push(PIPES_FWD(ts)...);
+      }
+      else
+      {
+        next.push(PIPES_FWD(ts)...);
+      }
+    }
+  };
 } // namespace pipes::detail
 
 namespace pipes::detail
@@ -33,34 +42,5 @@ namespace pipes::detail
   {
     F f;
     S sink;
-
-    template<class... T>
-    auto check(T const&... t) PIPES_RETURN(f(t...));
-
-    template<class... T>
-    auto push(T&&... t) PIPES_RETURN(sink.push(PIPES_FWD(t)...));
-  };
-
-  template<class... Cases>
-  struct Switch
-  {
-    std::tuple<Cases...> cases;
-
-    template<class... T>
-      requires(SinkFor<Cases, T...> && ...)
-    void push(T&&... t)
-    {
-      auto checkPush = [&t...](auto&& c)
-      {
-        if(c.check(t...))
-        {
-          c.push(PIPES_FWD(t)...);
-          return true;
-        }
-        return false;
-      };
-
-      callFirstSuccess(cases, checkPush);
-    }
   };
 } // namespace pipes::detail

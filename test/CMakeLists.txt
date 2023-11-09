@@ -38,7 +38,9 @@ add_library(tests OBJECT
  "from_stream.cpp"
  "remove_element.cpp"
  "otherOperators.cpp" 
- "output_iterator.cpp")
+ "output_iterator.cpp"
+ "take_if.cpp"
+)
 
 target_link_libraries(tests PRIVATE pch_lib)
 target_precompile_headers(tests REUSE_FROM pch_lib)

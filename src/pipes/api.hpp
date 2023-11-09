@@ -141,10 +141,21 @@ namespace pipes::detail::api
 
   auto case_(auto f) { return CaseSection{f}; }
 
-  template<class... Fs, class... Ss>
-  auto switch_(CaseSink<Fs, Ss>... cs)
+  auto take_if(auto f, UsableAsSink auto&& r)
   {
-    return sink(Switch{std::tuple{cs...}});
+    return pipe(TakeIf{f, useAsSink(PIPES_FWD(r))});
+  }
+
+  template<class F, class S>
+  auto switch_(CaseSink<F, S> c)
+  {
+    return pipe(TakeIf{c.f, c.sink}) + sink(Discard{});
+  }
+
+  template<class F, class S, class... Fs, class... Ss>
+  auto switch_(CaseSink<F, S> c, CaseSink<Fs, Ss>... cs)
+  {
+    return pipe(TakeIf{c.f, c.sink}) + switch_(PIPES_FWD(cs)...);
   }
 
   auto add_all(std::ranges::range auto&& r)
