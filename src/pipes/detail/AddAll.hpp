@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Utility/HOF.hpp"
 #include "Utility/ViewWrapper.hpp"
 
 #include "GenericImplementation/impl.hpp"
@@ -7,15 +8,16 @@
 namespace pipes::detail
 {
   template<IsViewWrapper R>
-  struct ForEach
+  struct AddAll
   {
     R r;
 
-    void push(SinkFor<value_t<R>> auto& sink)
+    template<class... Ts>
+    auto push(SinkFor<Ts..., value_t<R>> auto& sink, Ts&&... ts)
     {
-      for(auto const& t : r)
+      for(const auto& x : r)
       {
-        sink.push(t);
+        sink.push(PIPES_FWD(ts)..., x);
       }
     }
   };

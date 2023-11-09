@@ -6,6 +6,21 @@
 
 namespace pipes::detail
 {
+  template<class F, class... Ts>
+  void callFirstSuccess(std::tuple<Ts...> cases, F f)
+  {
+    auto ff = [f](auto... ts)
+    {
+      // short-circuits. after success, no more calls to f
+      return (f(ts) || ...);
+    };
+
+    std::apply(ff, cases);
+  }
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
   template<class F, class... Pieces>
   struct CaseSection
   {
@@ -35,7 +50,8 @@ namespace pipes::detail
       requires(SinkFor<Cases, T...> && ...)
     void push(T&&... t)
     {
-      auto checkPush = [&t...](auto&& c) {
+      auto checkPush = [&t...](auto&& c)
+      {
         if(c.check(t...))
         {
           c.push(PIPES_FWD(t)...);
@@ -47,5 +63,4 @@ namespace pipes::detail
       callFirstSuccess(cases, checkPush);
     }
   };
-
 } // namespace pipes::detail

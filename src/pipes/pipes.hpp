@@ -1,9 +1,9 @@
 #pragma once
 
+#include "api.hpp"
 
 #include "operators.hpp"
-
-#include "makePipes.hpp"
+#include "defaults.hpp"
 
 namespace pipes
 {

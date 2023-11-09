@@ -2,8 +2,6 @@
 
 #include <tuple>
 
-#include "Utility/tuples.hpp"
-
 #include "GenericImplementation/impl.hpp"
 
 namespace pipes::detail
@@ -17,7 +15,7 @@ namespace pipes::detail
       requires(SinkFor<Nexts, T> && ...)
     void push(T const& t)
     {
-      for_each([&t](auto& n) { n.push(t); }, nexts);
+      std::apply([&t](auto&... ns) { (ns.push(t), ...); }, nexts);
     }
   };
 } // namespace pipes::detail

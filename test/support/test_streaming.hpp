@@ -5,6 +5,43 @@
 
 #include "pipes/pipes.hpp"
 
+namespace pipes::detail
+{
+  template<class X>
+  struct is_tuple : std::false_type
+  {
+  };
+
+  template<class... Ts>
+  struct is_tuple<std::tuple<Ts...>> : std::true_type
+  {
+  };
+
+  template<class Tup>
+  constexpr static bool is_tuple_v = is_tuple<Tup>::value;
+
+  template<class X>
+  struct is_pair : std::false_type
+  {
+  };
+
+  template<class T1, class T2>
+  struct is_pair<std::pair<T1, T2>> : std::true_type
+  {
+  };
+
+  template<class Tup>
+  constexpr static bool is_pair_v = is_pair<Tup>::value;
+
+  template<class Tup>
+  concept Tuple_like = is_tuple_v<Tup> || is_pair_v<Tup>;
+
+  template<class Tup>
+  concept Pair_like =
+    is_pair_v<Tup> || (is_tuple_v<Tup> && std::tuple_size_v<Tup> == 2);
+} // namespace pipes::detail
+
+
 template<typename T>
 concept Streamable = requires(std::ostream& os, T value) {
   {

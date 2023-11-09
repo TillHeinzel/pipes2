@@ -1,12 +1,11 @@
 #pragma once
 
-#include "detail/Utility/FWD.hpp"
+#include "detail/Utility/HOF.hpp"
 
 #include "detail/GenericImplementation/impl.hpp"
 
+#include "detail/OutputIterator.hpp"
 #include "detail/Switch.hpp"
-
-#include "useAsSink.hpp"
 
 namespace pipes::detail
 {
@@ -44,15 +43,15 @@ namespace pipes::detail
 namespace pipes::detail
 {
   auto link(auto&& r, auto n)
-    PIPES_RETURN(link(defaultSource(PIPES_FWD(r)), n));
+    PIPES_RETURN(link(asSourceSection(PIPES_FWD(r)), n));
 
   template<class... Ops>
   auto link(SourceSection<Ops...> source, auto&& p)
-    PIPES_RETURN(link(source, defaultSink(PIPES_FWD(p))));
+    PIPES_RETURN(link(source, asSinkSection(PIPES_FWD(p))));
 
   template<class... Ops>
   auto link(Section<Ops...> n, auto&& p)
-    PIPES_RETURN(link(n, defaultSink(PIPES_FWD(p))));
+    PIPES_RETURN(link(n, asSinkSection(PIPES_FWD(p))));
 } // namespace pipes::detail
 
 namespace pipes::detail

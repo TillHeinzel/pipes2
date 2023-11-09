@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Utility/tuples.hpp"
-
 #include "GenericImplementation/impl.hpp"
 
 namespace pipes::detail

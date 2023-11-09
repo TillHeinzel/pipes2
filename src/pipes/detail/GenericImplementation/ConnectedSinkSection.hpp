@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../Utility/RETURN.hpp"
-#include "../Utility/tuples.hpp"
+#include <tuple>
+
+#include "../Utility/HOF.hpp"
 
 #include "BuildingBlocks.hpp"
 
 namespace pipes::detail
 {
-
   template<class X>
   concept hasValue = requires(X x) { x.value(); };
 
@@ -66,32 +66,23 @@ namespace pipes::detail
 
   auto endNode(auto s) { return FlowNode{EndNode{s}}; }
 
-  auto pieceNode(auto op, auto next)
-  {
-    return FlowNode{
-      PieceNode{next, op}
-    };
-  }
+  auto pieceNode(auto op, auto next) { return FlowNode{PieceNode{next, op}}; }
 } // namespace pipes::detail
 
 namespace pipes::detail
 {
-  auto connect_to_sink_impl(auto s) -> decltype(s) { return s; }
-
-  template<class Piece, class... Pieces>
-  auto connect_to_sink_impl(auto sink, Piece piece, Pieces... pieces)
-    PIPES_RETURN(connect_to_sink_impl(pieceNode(piece, sink), pieces...));
-
-  auto connect_to_sink_f(auto s)
+  template<class F>
+  auto operator+(auto piece, const FlowNode<F>& sink)
   {
-    return [s](auto... n) { return connect_to_sink_impl(s, n...); };
+    return pieceNode(piece, sink);
   }
 
   template<class... Pieces>
   auto connect_to_sink(Section<Pieces...> pipe, auto sink)
-    PIPES_RETURN(std::apply(connect_to_sink_f(endNode(sink)),
-                            reverse(pipe.pieces)));
-
+  {
+    return std::apply([s = endNode(sink)](auto... n) { return (n + ... + s); },
+                      pipe.pieces);
+  }
 } // namespace pipes::detail
 
 namespace pipes::detail
