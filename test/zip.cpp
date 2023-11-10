@@ -13,6 +13,7 @@
 
 TEST_CASE("zip")
 {
+  SUBCASE("")
   {
     using res = std::vector<std::tuple<int>>;
 
@@ -20,12 +21,15 @@ TEST_CASE("zip")
           == res{{1}, {2}, {3}});
   }
 
+  SUBCASE("")
   {
     using res = std::vector<std::tuple<std::string>>;
 
     CHECK((pipes::zip(source{"1", "2", "3"}) >> res{}) //
           == res{{"1"}, {"2"}, {"3"}});
   }
+
+  SUBCASE("")
   {
     using res = std::vector<std::tuple<int, std::string>>;
 
@@ -35,6 +39,8 @@ TEST_CASE("zip")
     CHECK((pipes::zip(source{1, 2, 3}, source{"a", "b"}) >> res{}) //
           == res{{1, "a"}, {2, "b"}});
   }
+
+  SUBCASE("")
   {
     using res = std::vector<std::tuple<int, std::string, double>>;
 
@@ -44,12 +50,14 @@ TEST_CASE("zip")
       == res{{1, "a", 1.1}, {2, "b", 2.2}, {3, "c", 3.3}});
   }
 
+  SUBCASE("")
   {
     CHECK((pipes::zip(source{1, 2, 3})
            >> pipes::transform([](int i) { return 2 * i; }) >> sink{})
           == vals{2, 4, 6});
   }
 
+  SUBCASE("")
   {
     auto replaceKey = [](auto p, int i) { return std::tuple{i, p.second}; };
 
@@ -61,6 +69,7 @@ TEST_CASE("zip")
           == vals{t{1, 44}, t{2, 55}, t{3, 66}});
   }
 
+  SUBCASE("")
   {
     auto const makeZip = []() { return pipes::zip(std::vector<int>{1, 2, 3}); };
 
@@ -69,6 +78,7 @@ TEST_CASE("zip")
     CHECK((makeZip() >> res{}) == res{{1}, {2}, {3}});
   }
 
+  SUBCASE("")
   {
     auto source1 = std::map<int, int>{{1, 11}, {2, 22}, {3, 33}};
     auto source2 = std::map<int, int>{{4, 44}, {5, 55}, {6, 66}};
@@ -80,8 +90,36 @@ TEST_CASE("zip")
         return std::tuple{p1.first, p2.second};
       });
 
-    CHECK((pipes::zip(source1, source2) >> replaceValue
-           >> sink{}) //
+    CHECK((pipes::zip(source1, source2) >> replaceValue >> sink{}) //
           == std::vector<std::tuple<int, int>>{{1, 44}, {2, 55}, {3, 66}});
+  }
+
+  SUBCASE("")
+  {
+    using res = std::vector<std::tuple<std::unique_ptr<int>>>;
+
+    auto result = res{};
+
+    pipes::zip(unique_source(1, 2)) >> pipes::push_back(result);
+
+    CHECK(result.size() == 2);
+    CHECK(*std::get<0>(result.at(0)) == 1);
+    CHECK(*std::get<0>(result.at(1)) == 2);
+  }
+
+   SUBCASE("")
+  {
+     using res =
+       std::vector<std::tuple<std::unique_ptr<int>, std::unique_ptr<int>>>;
+
+    auto result = res{};
+
+    pipes::zip(unique_source(1, 2), unique_source(3, 4)) >> result;
+
+    CHECK(result.size() == 2);
+    CHECK(*std::get<0>(result.at(0)) == 1);
+    CHECK(*std::get<1>(result.at(0)) == 3);
+    CHECK(*std::get<0>(result.at(1)) == 2);
+    CHECK(*std::get<1>(result.at(1)) == 4);
   }
 }

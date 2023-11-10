@@ -11,7 +11,7 @@ namespace pipes::detail
   {
     R r;
 
-    auto push(SinkFor<value_t<R>, value_t<R>> auto& sink)
+    auto push(auto& sink)
     {
       if(r.begin() == r.end()) return;
 

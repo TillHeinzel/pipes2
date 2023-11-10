@@ -8,7 +8,7 @@
 
 TEST_CASE("transform")
 {
-  auto identity = pipes::transform([](int i) { return i; });
+  auto identity = pipes::transform([](auto&& i) { return PIPES_FWD(i); });
 
   CHECK((source{} >> identity >> sink{}) //
         == vals{});
@@ -37,7 +37,10 @@ TEST_CASE("transform")
   auto appendSemicolon =
     pipes::transform([](std::string s) { return s + ";"; });
 
-  CHECK( //
-    (source{"1", "2", "3"} >>= appendSemicolon >>= sink{})
-    == vals{"1;", "2;", "3;"});
+  CHECK((source{"1", "2", "3"} >> appendSemicolon >> sink{}) //
+        == vals{"1;", "2;", "3;"});
+
+  CHECK((pipes::for_each(unique_source(1, 2, 3)) >> identity
+         >> pipes::push_back(unique_sink())) //
+        == vals{1, 2, 3});
 }

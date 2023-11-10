@@ -47,4 +47,15 @@ TEST_CASE("to_iterator")
 
     CHECK(sink == vals{"1", "2", "3"});
   }
+
+  SUBCASE("")
+  {
+    auto sink = unique_sink();
+
+    auto back = pipes::to_iterator(std::back_inserter(sink));
+
+    pipes::for_each(unique_source(1, 2, 3)) >> back;
+
+    //CHECK(sink == vals{1, 2, 3});
+  }
 }

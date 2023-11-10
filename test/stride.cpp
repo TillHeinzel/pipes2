@@ -46,18 +46,8 @@ TEST_CASE("stride")
   CHECK((source{t{0, 0}, t{1, 1}, t{2, 2}, t{3, 3}, t{4, 4}, t{5, 5}}
          >> pipes::stride(2) >> sink{})
         == vals{t{0, 0}, t{2, 2}, t{4, 4}});
-}
 
-TEST_CASE("wrong type cannot link")
-{
-  SUBCASE("drop")
-  {
-    auto sink = pipes::stride(2) >> std::vector<int>{};
-
-    using GoodSource = std::vector<int>;
-    using BadSource = std::vector<std::string>;
-
-    static_assert(pipes::CanLink<GoodSource, decltype(sink)>);
-    static_assert(!pipes::CanLink<BadSource, decltype(sink)>);
-  }
+  
+  CHECK((unique_source(0, 1, 2, 3, 4, 5, 6) >> pipes::stride(2) >> unique_sink())
+        == vals{0, 2, 4, 6});
 }

@@ -40,7 +40,7 @@ add_library(tests OBJECT
  "otherOperators.cpp" 
  "output_iterator.cpp"
  "take_if.cpp"
-)
+ "tuple_flatten.cpp")
 
 target_link_libraries(tests PRIVATE pch_lib)
 target_precompile_headers(tests REUSE_FROM pch_lib)
@@ -55,31 +55,7 @@ target_include_directories(tests PRIVATE "${CMAKE_CURRENT_LIST_DIR}/..")
 
 add_subdirectory(testrunner)
 
-  # todo: interfunction with ranges
-  # 
-  # todo: tuple_flatten
-  # 
-  # todo: chunk
-  # 
-  # todo: reduce
-  # 
-  # todo: intersperse
-  # 
-  # todo: move-only types
-  #
-  # todo: return values from multi-pipes
-  #
-  # todo: big types with lots of data (do not have to copy everything all the
-  # time)
-  #
-  # todo: generators and take-from for generator with effectively infinite
-  # sources
-  #
-  # todo: make work with tuples! pipelines for tuples! that would be cool and
-  # useful
-  #
-  # todo: make examples that use the single-header generated from the headers
-  # and links with cmake
-  #
   # todo: exporting target and find-able module in cmake
   # 
+  # todo: return values from multi-pipes
+  #

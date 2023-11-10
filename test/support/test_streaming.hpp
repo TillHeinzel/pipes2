@@ -62,6 +62,13 @@ std::ostream& println_tuple_impl(std::ostream& os,
 
 namespace std
 {
+  template<class T>
+  std::ostream& operator<<(std::ostream& stream, std::unique_ptr<T> const& t)
+  {
+    stream << "*" << *t;
+    return stream;
+  }
+
   template<pipes::detail::Tuple_like Tup>
   std::ostream& operator<<(std::ostream& stream, Tup const& t)
   {

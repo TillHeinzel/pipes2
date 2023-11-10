@@ -13,15 +13,31 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
+  template<class T>
+  concept DefaultSinkAble = requires(T t) {
+    DefaultSinkFor<std::remove_reference_t<T>>::make(PIPES_FWD(t));
+  };
+
+  auto defaultSink(DefaultSinkAble auto&& s)
+  {
+    return DefaultSinkFor<std::remove_reference_t<decltype(s)>>::make(
+      PIPES_FWD(s));
+  }
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
   template<class... Ts>
   auto asSinkSection(SinkSection<Ts...> s)
   {
     return s;
   }
 
-  template<class T>
-  auto asSinkSection(T&& t) PIPES_RETURN(
-    DefaultSinkFor<std::remove_reference_t<T>>::make(PIPES_FWD(t)));
+  template<DefaultSinkAble T>
+  auto asSinkSection(T&& t)
+  {
+    return defaultSink(PIPES_FWD(t));
+  }
 } // namespace pipes::detail
 
 namespace pipes::detail
@@ -45,15 +61,31 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
+  template<class T>
+  concept DefaultSourceAble = requires(T t) {
+    DefaultSourceFor<std::remove_reference_t<T>>::make(PIPES_FWD(t));
+  };
+
+  auto defaultSource(DefaultSourceAble auto&& s)
+  {
+    return DefaultSourceFor<std::remove_reference_t<decltype(s)>>::make(
+      PIPES_FWD(s));
+  }
+} // namespace pipes::detail
+
+namespace pipes::detail
+{
   template<class... Ts>
   auto asSourceSection(SourceSection<Ts...> s)
   {
     return s;
   }
 
-  template<class T>
-  auto asSourceSection(T&& t) PIPES_RETURN(
-    DefaultSourceFor<std::remove_reference_t<T>>::make(PIPES_FWD(t)));
+  template<DefaultSourceAble T>
+  auto asSourceSection(T&& t)
+  {
+    return defaultSource(PIPES_FWD(t));
+  }
 } // namespace pipes::detail
 
 namespace pipes::detail

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
@@ -32,4 +33,14 @@ bool operator==(sink const& lhs, std::vector<T> const& rhs)
   }
 
   return vv == rhs;
+}
+
+
+auto unique_sink(auto... ts)
+{
+  auto retval = std::vector<std::unique_ptr<int>>{};
+
+  (retval.push_back(std::make_unique<int>(ts)), ...);
+
+  return retval;
 }

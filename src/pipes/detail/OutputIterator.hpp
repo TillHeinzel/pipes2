@@ -19,9 +19,9 @@ namespace pipes::detail
 
     Sink sink;
 
-    OutputIterator& operator=(int t)
+    OutputIterator& operator=(auto t)
     {
-      sink.push(t);
+      sink.push(std::move(t));
       return *this;
     }
 

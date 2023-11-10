@@ -2,7 +2,6 @@
 
 #include "Utility/HOF.hpp"
 
-
 namespace pipes::detail
 {
   template<class F>
@@ -10,6 +9,9 @@ namespace pipes::detail
   {
     F f;
 
-    auto push(auto& sink) PIPES_RETURN(f(sink));
+    void push(auto& sink)
+    {
+      f(sink);
+    }
   };
 } // namespace pipes::detail

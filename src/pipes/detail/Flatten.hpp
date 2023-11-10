@@ -10,9 +10,9 @@ namespace pipes::detail
   struct Flatten
   {
     template<std::ranges::range R>
-    void push(SinkFor<std::ranges::range_value_t<R>> auto& next, R const& v)
+    void push(auto& next, R v)
     {
-      for(auto const& t : v) next.push(t);
+      for(auto& t : v) next.push(std::move(t));
     }
   };
 } // namespace pipes::detail

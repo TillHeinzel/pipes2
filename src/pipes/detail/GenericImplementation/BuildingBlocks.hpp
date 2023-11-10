@@ -38,25 +38,29 @@ namespace pipes::detail
   template<class... T1s, class... T2s>
   auto operator+(Section<T1s...> lhs, Section<T2s...> rhs)
   {
-    return Section{std::tuple_cat(lhs.pieces, rhs.pieces)};
+    return Section{
+      std::tuple_cat(std::move(lhs).pieces, std::move(rhs).pieces)};
   }
 
   template<class... T1s, class... T2s>
   auto operator+(Section<T1s...> pipe, SinkSection<T2s...> sink)
   {
-    return SinkSection{sink.finalSink, pipe + sink.pipe};
+    return SinkSection{std::move(sink).finalSink,
+                       std::move(pipe) + std::move(sink).pipe};
   }
 
   template<class... T1s, class... T2s>
   auto operator+(SourceSection<T1s...> source, Section<T2s...> pipe)
   {
-    return SourceSection{std::move(source.source),
-                         std::move(source.pipe) + std::move(pipe)};
+    return SourceSection{std::move(source).source,
+                         std::move(source).pipe + std::move(pipe)};
   }
 
   template<class... T1s, class... T2s>
   auto operator+(SourceSection<T1s...> source, SinkSection<T2s...> sink)
   {
-    return Pipeline{source.source, sink.finalSink, source.pipe + sink.pipe};
+    return Pipeline{std::move(source).source,
+                    std::move(sink).finalSink,
+                    std::move(source).pipe + std::move(sink).pipe};
   }
 } // namespace pipes::detail

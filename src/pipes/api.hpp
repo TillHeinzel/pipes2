@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ranges>
+
 #include "detail/AddAll.hpp"
 #include "detail/AddEach.hpp"
 #include "detail/Adjacent.hpp"
@@ -16,7 +18,6 @@
 #include "detail/IteratorSink.hpp"
 #include "detail/MixIn.hpp"
 #include "detail/OutputIterator.hpp"
-#include "detail/Partition.hpp"
 #include "detail/Reduce_each.hpp"
 #include "detail/RemoveElement.hpp"
 #include "detail/Stride.hpp"
@@ -24,6 +25,7 @@
 #include "detail/Tee.hpp"
 #include "detail/ToStream.hpp"
 #include "detail/Transform.hpp"
+#include "detail/TupleFlatten.hpp"
 #include "detail/rangeSinks.hpp"
 
 namespace pipes::detail
@@ -106,15 +108,21 @@ namespace pipes::detail::api
 
   auto drop_while(auto f) { return drop_until(negate(f)); }
 
-  auto drop(std::size_t count) { return drop_until(invokedTimes(count)); }
+  inline auto drop(std::size_t count)
+  {
+    return drop_until(invokedTimes(count));
+  }
 
   auto take_until(auto f) { return filter(negate(fulfilledOnce(f))); }
 
   auto take_while(auto f) { return take_until(negate(f)); }
 
-  auto take(std::size_t count) { return take_until(invokedTimes(count)); }
+  inline auto take(std::size_t count)
+  {
+    return take_until(invokedTimes(count));
+  }
 
-  auto stride(std::size_t step, std::size_t offset = 0)
+  inline auto stride(std::size_t step, std::size_t offset = 0)
   {
     return pipe(Filter{stride_f(step, offset)});
   }
@@ -128,23 +136,22 @@ namespace pipes::detail::api
     return sink(Fork{std::tuple{useAsSink(PIPES_FWD(s))...}});
   }
 
+  auto take_if(auto f, UsableAsSink auto&& r)
+  {
+    return pipe(TakeIf{f, useAsSink(PIPES_FWD(r))});
+  }
+
   auto partition(auto&& f,
                  UsableAsSink auto&& ifTrue,
                  UsableAsSink auto&& ifFalse)
   {
-    return sink(Partition{PIPES_FWD(f),
-                          useAsSink(PIPES_FWD(ifTrue)),
-                          useAsSink(PIPES_FWD(ifFalse))});
+    return pipe(TakeIf{f, useAsSink(PIPES_FWD(ifTrue))})
+           + asSinkSection(PIPES_FWD(ifFalse));
   }
 
   constexpr auto default_ = CaseSection{[](auto&&...) { return true; }};
 
   auto case_(auto f) { return CaseSection{f}; }
-
-  auto take_if(auto f, UsableAsSink auto&& r)
-  {
-    return pipe(TakeIf{f, useAsSink(PIPES_FWD(r))});
-  }
 
   template<class F, class S>
   auto switch_(CaseSink<F, S> c)
@@ -190,6 +197,8 @@ namespace pipes::detail::api
   {
     return pipe(MixIn{ViewWrapper{PIPES_FWD(r)}, skips});
   }
+
+  inline auto tuple_flatten() { return pipe(TupleFlatten{}); }
 } // namespace pipes::detail::api
 
 namespace pipes::detail::api

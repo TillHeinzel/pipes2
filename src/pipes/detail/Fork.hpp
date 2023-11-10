@@ -11,9 +11,7 @@ namespace pipes::detail
   {
     std::tuple<Nexts...> nexts;
 
-    template<class T>
-      requires(SinkFor<Nexts, T> && ...)
-    void push(T const& t)
+    void push(auto const& t)
     {
       std::apply([&t](auto&... ns) { (ns.push(t), ...); }, nexts);
     }

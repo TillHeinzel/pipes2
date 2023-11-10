@@ -9,12 +9,10 @@ namespace pipes::detail
   {
     Side side;
 
-    template<class T, class... Ts>
-      requires(SinkFor<Side, T>)
-    void push(SinkFor<Ts...> auto& next, T&& t, Ts&&... ts)
+    void push(auto& next, auto t, auto... ts)
     {
-      side.push(PIPES_FWD(t));
-      next.push(PIPES_FWD(ts)...);
+      side.push(std::move(t));
+      next.push(std::move(ts)...);
     }
   };
 } // namespace pipes::detail

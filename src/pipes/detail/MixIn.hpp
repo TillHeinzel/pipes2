@@ -12,7 +12,7 @@ namespace pipes::detail
     R r;
     std::size_t skips;
 
-    MixIn(R r, std::size_t skips) : r(r), skips(skips), it(r.begin()) {}
+    MixIn(R r, std::size_t skips) : r(std::move(r)), skips(skips), it(r.begin()) {}
 
     MixIn(MixIn&& other) :
       r(std::move(other.r)),
@@ -26,18 +26,16 @@ namespace pipes::detail
     decltype(r.begin()) it = r.begin();
     std::size_t skipsTaken = 0;
 
-    template<class Next, class T>
-      requires(SinkFor<Next, T> && SinkFor<Next, value_t<R>>)
-    void push(Next& next, T&& t)
+    void push(auto& next, auto t)
     {
       if(it == r.end()) return;
 
-      next.push(PIPES_FWD(t));
+      next.push(std::move(t));
       skipsTaken++;
 
       if(skipsTaken == skips)
       {
-        next.push(*it++);
+        next.push(R::fwd(*it++));
         skipsTaken = 0;
       }
     }

@@ -11,11 +11,11 @@ namespace pipes::detail
   {
     R r;
 
-    void push(SinkFor<value_t<R>> auto& sink)
+    void push(auto& sink)
     {
-      for(auto const& t : r)
+      for(decltype(auto) t : r)
       {
-        sink.push(t);
+        sink.push(R::fwd(t));
       }
     }
   };

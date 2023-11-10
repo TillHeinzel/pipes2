@@ -12,7 +12,7 @@ namespace pipes::detail
   {
     R r;
 
-    AddEach(R r) : r(r), it(r.begin()) {}
+    AddEach(R r) : r(std::move(r)), it(r.begin()) {}
 
     AddEach(AddEach&& other) : r(std::move(other.r)), it(r.begin()) {}
 
@@ -20,11 +20,10 @@ namespace pipes::detail
 
     decltype(r.begin()) it = r.begin();
 
-    template<class... Ts>
-    auto push(SinkFor<Ts..., value_t<R>> auto& sink, Ts&&... ts)
+    auto push(auto& sink, auto... ts)
     {
       if(it == r.end()) return;
-      sink.push(PIPES_FWD(ts)..., *it++);
+      sink.push(std::move(ts)..., R::fwd(*it++));
     }
   };
 } // namespace pipes::detail

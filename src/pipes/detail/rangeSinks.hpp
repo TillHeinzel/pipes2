@@ -22,9 +22,15 @@ namespace pipes::detail
     R r;
     F f;
 
-    auto push(auto&& t) PIPES_RETURN(f(r, PIPES_FWD(t)));
+    template<class T>
+    void push(T&& t)
+    {
+      f(r, PIPES_FWD(t));
+    }
 
-    R value() { return r; }
+    R value() const& { return r; }
+
+    R value() && { return std::move(r); }
   };
 
   template<class R, class F>
@@ -33,7 +39,11 @@ namespace pipes::detail
     std::reference_wrapper<R> r;
     F f;
 
-    auto push(auto&& t) PIPES_RETURN(f(r.get(), PIPES_FWD(t)));
+    template<class T>
+    void push(T&& t)
+    {
+      f(r.get(), PIPES_FWD(t));
+    }
 
     R& value() { return r.get(); }
   };
@@ -47,17 +57,17 @@ namespace pipes::detail
 
 namespace pipes::detail
 {
-  constexpr auto push_back_f =
-    [](auto& r, auto&& t) PIPES_RETURN(r.push_back(PIPES_FWD(t)));
+  constexpr auto push_back_f = [](auto& r, auto t)
+  { return r.push_back(std::move(t)); };
 
-  constexpr auto push_front_f =
-    [](auto& r, auto&& t) PIPES_RETURN(r.push_front(PIPES_FWD(t)));
+  constexpr auto push_front_f = [](auto& r, auto t)
+  { return r.push_front(std::move(t)); };
 
-  constexpr auto insert_f =
-    [](auto& r, auto&& t) PIPES_RETURN(r.insert(PIPES_FWD(t)));
+  constexpr auto insert_f = [](auto& r, auto t)
+  { return r.insert(std::move(t)); };
 
-  constexpr auto insert_or_assign_f = [](auto& r, auto&& t)
-    PIPES_RETURN(r.insert_or_assign(std::get<0>(t), PIPES_FWD(std::get<1>(t))));
+  constexpr auto insert_or_assign_f = [](auto& r, auto t)
+  { return r.insert_or_assign(std::get<0>(std::move(t)), std::get<1>(std::move(t))); };
 
 } // namespace pipes::detail
 
@@ -65,30 +75,30 @@ namespace pipes::detail
 {
   auto set_aggregate_f(auto f)
   {
-    return [f](auto& r, auto&& t)
+    return [f](auto& r, auto t)
     {
-      auto recur = [f, &r](auto&& t, auto&& recur) -> void
+      auto recur = [f, &r](auto t, auto const& recur) -> void
       {
-        auto [it, didInsert] = r.insert(PIPES_FWD(t));
+        auto [it, didInsert] = r.insert(std::move(t));
         if(!didInsert)
         {
-          recur(f(r.extract(it).value(), PIPES_FWD(t)), recur);
+          recur(f(r.extract(it).value(), std::move(t)), recur);
         }
       };
 
-      recur(PIPES_FWD(t), recur);
+      recur(std::move(t), recur);
     };
   }
 
   auto map_aggregate_f(auto f)
   {
-    return [f](auto& m, auto&& t)
+    return [f](auto& m, auto t)
     {
-      auto [it, didInsert] = m.insert(PIPES_FWD(t));
+      auto [it, didInsert] = m.insert(std::move(t));
 
       if(!didInsert)
       {
-        it->second = f(it->second, PIPES_FWD(t).second);
+        it->second = f(it->second, std::move(t).second);
       }
     };
   }

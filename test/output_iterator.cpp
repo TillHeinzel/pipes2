@@ -64,4 +64,15 @@ TEST_CASE("output_iterator")
 
     CHECK(to == vals{4, 8});
   }
+
+  SUBCASE("")
+  {
+    auto const from = source{"1", "2", "3"};
+
+    auto to = std::vector<std::string>{};
+
+    std::copy(from.begin(), from.end(), pipes::output_iterator() >> to);
+
+    CHECK(to == vals{"1", "2", "3"});
+  }
 }

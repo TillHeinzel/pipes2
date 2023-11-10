@@ -9,11 +9,9 @@ namespace pipes::detail
   {
     F f;
 
-    template<class... Ts>
-      requires(std::invocable<F, Ts...>)
-    auto push(SinkFor<Ts...> auto& next, Ts&&... ts)
+    auto push(auto& next, auto... ts)
     {
-      if(f(ts...)) next.push(PIPES_FWD(ts)...);
+      if(f(ts...)) next.push(std::move(ts)...);
     }
   };
 } // namespace pipes::detail

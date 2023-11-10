@@ -9,10 +9,6 @@ namespace pipes::detail
   {
     F f;
 
-    template<class... Ts>
-    void push(SinkFor<std::invoke_result_t<F, Ts...>> auto& next, Ts&&... ts)
-    {
-      return next.push(f(PIPES_FWD(ts)...));
-    }
+    void push(auto& next, auto... ts) { return next.push(f(std::move(ts)...)); }
   };
 } // namespace pipes::detail

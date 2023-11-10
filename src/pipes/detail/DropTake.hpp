@@ -6,16 +6,17 @@ namespace pipes::detail
 {
   auto fulfilledOnce(auto f)
   {
-    return [f, fulfilled = false](auto&&... ts) mutable requires(
-      std::invocable<decltype(f), decltype(ts)...>) {
+    return [f, fulfilled = false](auto const&... ts) mutable
+    {
       fulfilled = fulfilled || f(ts...);
       return fulfilled;
     };
   }
 
-  auto invokedTimes(std::size_t count)
+  inline auto invokedTimes(std::size_t count)
   {
-    return [count, count_so_far = std::size_t(0)](auto const&...) mutable {
+    return [count, count_so_far = std::size_t(0)](auto const&...) mutable
+    {
       ++count_so_far;
       return count_so_far > count;
     };

@@ -12,12 +12,11 @@ namespace pipes::detail
   {
     R r;
 
-    template<class... Ts>
-    auto push(SinkFor<Ts..., value_t<R>> auto& sink, Ts&&... ts)
+    auto push(auto& sink, auto const&... ts)
     {
       for(const auto& x : r)
       {
-        sink.push(PIPES_FWD(ts)..., x);
+        sink.push(ts..., x);
       }
     }
   };

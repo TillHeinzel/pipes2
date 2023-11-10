@@ -68,20 +68,16 @@ TEST_CASE("unzip")
     CHECK(t2 == vals{4, 5, 6});
     CHECK(t3 == vals{"a", "b", "c"});
   }
-}
 
-TEST_CASE("cannot link bad connection")
-{
-  SUBCASE("unzip")
+  SUBCASE("")
   {
-    auto target = std::vector<int>{};
+    auto t1 = unique_source();
+    auto t2 = unique_source();
 
-    auto sink = pipes::unzip(target);
+    pipes::zip(unique_source(1, 2), unique_source(3, 4))
+      >> pipes::unzip(t1, t2);
 
-    using GoodSource = std::vector<std::tuple<int>>;
-    using BadSource = std::vector<std::tuple<std::string>>;
-
-    static_assert(pipes::CanLink<GoodSource, decltype(sink)>);
-    static_assert(!pipes::CanLink<BadSource, decltype(sink)>);
+    CHECK(t1 == vals{1, 2});
+    CHECK(t2 == vals{3, 4});
   }
 }

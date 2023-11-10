@@ -17,20 +17,20 @@
 
 TEST_CASE("flatten")
 {
-  SUBCASE("simple")
+  SUBCASE("")
   {
     CHECK((source<std::vector<int>>{{1, 2}} >> pipes::flatten() >> sink{}) //
           == vals{1, 2});
   }
 
-  SUBCASE("multiple layers")
+  SUBCASE("")
   {
     CHECK((source<std::vector<std::vector<int>>>{{{1, 2}, {3}}, {{4}, {5, 6}}}
            >> pipes::flatten() >> pipes::flatten() >> sink{}) //
           == vals{1, 2, 3, 4, 5, 6});
   }
 
-  SUBCASE("other types")
+  SUBCASE("")
   {
     using t = std::pair<int, int>;
 
@@ -39,5 +39,18 @@ TEST_CASE("flatten")
                                       {t{7, 8}, t{9, 10}}}
            >> pipes::flatten() >> std::vector<std::pair<int, int>>{}) //
           == vals{t{1, 2}, t{3, 4}, t{5, 6}, t{7, 8}, t{9, 10}});
+  }
+
+  SUBCASE("")
+  {
+    auto vv_unique = []()
+    {
+      auto retval = std::vector<std::vector<std::unique_ptr<int>>>{};
+      retval.push_back(unique_source(1, 2));
+      return retval;
+    };
+
+    CHECK((vv_unique() >> pipes::flatten() >> unique_sink()) //
+          == vals{1, 2});
   }
 }

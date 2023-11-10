@@ -21,37 +21,57 @@ namespace pipes::detail
 namespace pipes::detail
 {
   template<class... Ops1, class... Ops2>
-  auto link(Section<Ops1...> ops1, Section<Ops2...> ops2)
-    PIPES_RETURN(ops1 + ops2);
+  decltype(auto) link(Section<Ops1...> ops1, Section<Ops2...> ops2)
+  {
+    return std::move(ops1) + std::move(ops2);
+  }
 
   template<class Source_, class... Ts, class... Ops>
-    requires(ValidSource<Source_, Section<Ts..., Ops...>>)
-  auto link(SourceSection<Source_, Ts...> source, Section<Ops...> laterOps)
-    PIPES_RETURN(source + laterOps);
+  decltype(auto) link(SourceSection<Source_, Ts...> source,
+                      Section<Ops...> laterOps)
+  {
+    return std::move(source) + std::move(laterOps);
+  }
 
   template<class... Ops, class... Ts>
-  auto link(Section<Ops...> earlierOps, SinkSection<Ts...> sink)
-    PIPES_RETURN(earlierOps + sink);
+  decltype(auto) link(Section<Ops...> earlierOps, SinkSection<Ts...> sink)
+  {
+    return std::move(earlierOps) + std::move(sink);
+  }
 
   template<class Source, class... T1s, class Sink, class... T2s>
-    requires(ValidPipeline<Source, Sink, Section<T1s..., T2s...>>)
-  auto link(SourceSection<Source, T1s...> source,
-            SinkSection<Sink, T2s...> sink)
-    PIPES_RETURN(connectPipeline(source + sink).run());
+  decltype(auto) link(SourceSection<Source, T1s...> source,
+                      SinkSection<Sink, T2s...> sink)
+  {
+    return connectPipeline(std::move(source) + std::move(sink)).run();
+  }
 } // namespace pipes::detail
 
 namespace pipes::detail
 {
-  auto link(auto&& r, auto n)
-    PIPES_RETURN(link(asSourceSection(PIPES_FWD(r)), n));
+  template<class... Ops>
+  decltype(auto) link(DefaultSourceAble auto&& r, SinkSection<Ops...> n)
+  {
+    return link(defaultSource(PIPES_FWD(r)), std::move(n));
+  }
+
+  template<class... Ts>
+  decltype(auto) link(DefaultSourceAble auto&& r, Section<Ts...> n)
+  {
+    return link(defaultSource(PIPES_FWD(r)), std::move(n));
+  }
 
   template<class... Ops>
-  auto link(SourceSection<Ops...> source, auto&& p)
-    PIPES_RETURN(link(source, asSinkSection(PIPES_FWD(p))));
+  decltype(auto) link(SourceSection<Ops...> source, DefaultSinkAble auto&& p)
+  {
+    return link(std::move(source), defaultSink(PIPES_FWD(p)));
+  }
 
   template<class... Ops>
-  auto link(Section<Ops...> n, auto&& p)
-    PIPES_RETURN(link(n, asSinkSection(PIPES_FWD(p))));
+  decltype(auto) link(Section<Ops...> n, DefaultSinkAble auto&& p)
+  {
+    return link(std::move(n), defaultSink(PIPES_FWD(p)));
+  }
 } // namespace pipes::detail
 
 namespace pipes::detail
@@ -59,13 +79,13 @@ namespace pipes::detail
   template<class F, class... Pieces1, class... Pieces2>
   auto link(CaseSection<F, Pieces1...> c, Section<Pieces2...> s)
   {
-    return CaseSection{c.f, c.pipe + s};
+    return CaseSection{std::move(c).f, std::move(c).pipe + std::move(s)};
   }
 
   template<class F, class... Pieces>
   auto link(CaseSection<F, Pieces...> c, UsableAsSink auto&& s)
   {
-    return CaseSink{c.f, useAsSink(c.pipe + asSinkSection(PIPES_FWD(s)))};
+    return CaseSink{std::move(c).f, useAsSink(std::move(c).pipe + asSinkSection(PIPES_FWD(s)))};
   }
 } // namespace pipes::detail
 

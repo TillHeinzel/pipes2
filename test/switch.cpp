@@ -45,9 +45,9 @@ TEST_CASE("switch")
 
   SUBCASE("2 cases")
   {
-    source{1, 2, 3, 4, 5, 6, 7, 8} >>
-      pipes::switch_(pipes::case_(isMultipleOf3) >> s1,
-                     pipes::case_(isMultipleOf4) >> s2);
+    source{1, 2, 3, 4, 5, 6, 7, 8}
+      >> pipes::switch_(pipes::case_(isMultipleOf3) >> s1,
+                        pipes::case_(isMultipleOf4) >> s2);
 
     CHECK(s1 == vals{3, 6});
     CHECK(s2 == vals{4, 8});
@@ -55,10 +55,10 @@ TEST_CASE("switch")
 
   SUBCASE("2 cases with default")
   {
-    source{1, 2, 3, 4, 5, 6, 7, 8} >>
-      pipes::switch_(pipes::case_(isMultipleOf3) >> s1,
-                     pipes::case_(isMultipleOf4) >> s2,
-                     pipes::default_ >> rest);
+    source{1, 2, 3, 4, 5, 6, 7, 8}
+      >> pipes::switch_(pipes::case_(isMultipleOf3) >> s1,
+                        pipes::case_(isMultipleOf4) >> s2,
+                        pipes::default_ >> rest);
 
     CHECK(s1 == vals{3, 6});
     CHECK(s2 == vals{4, 8});
@@ -98,21 +98,20 @@ TEST_CASE("switch")
 
     CHECK(s1 == vals{4, 8});
   }
-}
 
-TEST_CASE("wrong type cannot link")
-{
-  SUBCASE("switch")
+  SUBCASE("")
   {
-    auto isEven = [](int i) { return i % 2 == 0; };
+    auto taken1 = unique_sink();
+    auto taken2 = unique_sink();
+    auto rest = unique_sink();
 
-    auto target = std::vector<int>{};
-    auto sw = pipes::switch_(pipes::case_(isEven) >> target);
+    unique_source(1, 2, 3, 4, 5, 6, 7, 8)
+      >> pipes::switch_(pipes::case_(unique(isMultipleOf3)) >> taken1,
+                        pipes::case_(unique(isMultipleOf4)) >> taken2,
+                        pipes::default_ >> rest);
 
-    using GoodSource = std::vector<int>;
-    using BadSource = std::vector<std::string>;
-
-    static_assert(pipes::CanLink<GoodSource, decltype(sw)>);
-    static_assert(!pipes::CanLink<BadSource, decltype(sw)>);
+    CHECK(taken1 == vals{3, 6});
+    CHECK(taken2 == vals{4, 8});
+    CHECK(rest == vals{1, 2, 5, 7});
   }
 }

@@ -79,7 +79,7 @@ TEST_CASE("take_if")
     CHECK(rest == vals{"22", "333"});
   }
 
-  SUBCASE("2 cases with default")
+  SUBCASE("")
   {
     auto taken2 = sink{};
 
@@ -92,22 +92,20 @@ TEST_CASE("take_if")
     CHECK(taken2 == vals{4, 8});
     CHECK(rest == vals{1, 2, 5, 7});
   }
-}
 
-
-TEST_CASE("wrong type cannot link")
-{
-  SUBCASE("take_if")
+  SUBCASE("")
   {
-    auto isEven = [](int i) { return i % 2 == 0; };
+    auto taken1 = unique_sink();
+    auto taken2 = unique_sink();
+    auto rest = unique_sink();
 
-    auto target = std::vector<int>{};
-    auto sw = (pipes::take_if(isEven, target) >> pipes::discard());
+    unique_source(1, 2, 3, 4, 5, 6, 7, 8)             //
+      >> pipes::take_if(unique(isMultipleOf3), taken1)  //
+      >> pipes::take_if(unique(isMultipleOf4), taken2) //
+      >> rest;
 
-    using GoodSource = std::vector<int>;
-    using BadSource = std::vector<std::string>;
-
-    static_assert(pipes::CanLink<GoodSource, decltype(sw)>);
-    static_assert(!pipes::CanLink<BadSource, decltype(sw)>);
+    CHECK(taken1 == vals{3, 6});
+    CHECK(taken2 == vals{4, 8});
+    CHECK(rest == vals{1, 2, 5, 7});
   }
 }

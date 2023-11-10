@@ -57,6 +57,10 @@ TEST_CASE("mix_in")
   CHECK((pipes::for_each(source{1, 3}) >> //
          makeMixIn(2, 4) >> sink{})
         == vals{1, 2, 3, 4});
+
+  CHECK((pipes::for_each(unique_source(1, 3)) >> //
+         pipes::mix_in(unique_source(2, 4)) >> unique_sink())
+        == vals{1, 2, 3, 4});
 }
 
 TEST_CASE("interleave")

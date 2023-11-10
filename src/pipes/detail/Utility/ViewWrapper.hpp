@@ -14,6 +14,14 @@ namespace pipes::detail
     auto end() { return r.end(); }
 
     using value_type = std::ranges::range_value_t<R>;
+
+    template<class T>
+      requires(std::is_lvalue_reference_v<R>)
+    static auto const& fwd(T& x) { return x; }
+
+    template<class T>
+      requires(!std::is_lvalue_reference_v<R>)
+    static auto fwd(T& x) { return std::move(x); }
   };
 
   template<class T>

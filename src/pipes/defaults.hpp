@@ -11,7 +11,7 @@ namespace pipes::detail
 
     static auto make(std::vector<T>&& v)
     {
-      return api::push_back(std::move(v));
+      return api::push_back(PIPES_FWD(v));
     }
   };
 
